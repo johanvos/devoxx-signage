@@ -66,6 +66,10 @@ public class Speaker {
     logger.fine("Caching photo for " + fullName);
     File cacheFile = new File(photoFileName);
 
+    if (downloadURL != null && downloadURL.isEmpty()) {
+        return;
+    }
+    
     if (downloadURL.contains("\\")) {
       logger.warning("Image URL badly formed: " + downloadURL);
       logger.warning("Trying to fix this");
