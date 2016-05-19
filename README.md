@@ -14,3 +14,33 @@ Digital signage used at the Devoxx conference with Raspberry PIs.
 
 3. Run app on the pi, using 
 java -Djava.ext.dirs=/opt/armv6hf-sdk/rt/lib/ext -jar Devoxx.jar
+
+# Start Digital Signage automatic on PI
+
+Create the following file /etc/rc.local with following commands
+
+<syntaxhighlight lang="csh">
+#!/bin/sh -e
+#
+# /etc/rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+
+ROOM=room9
+
+#
+# Start the Devoxx display screen app with the right room
+#
+echo Starting Devoxx room display for $ROOM
+cd /home/devoxx
+/opt/jdk8/bin/java -Xmx256m -Djava.util.logging.SimpleFormatter.format='%4$s: %5$s%6$s%n' -jar Devoxx.jar $ROOM /home/devoxx/signage.properties > /tmp/signage.log 2>&1
+
+exit 0
+</syntaxhighlight>

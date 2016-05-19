@@ -237,5 +237,15 @@ public class FXMLDocumentController implements Initializable {
         }
 
         roomNumber.setText(room);
+        
+        // Shows the "Auditorium" room label for Devoxx UK
+        if (room.length() > 4) {
+          sessionLbl.setText(room);
+          sessionLbl.setTranslateX(-60);
+          sessionLbl.setTranslateY(20);
+          sessionLbl.setFont(Font.font("Arial", FontWeight.BOLD, 120));
+          roomNumber.setText("");
+          roomLbl.setText("");
+        } 
     }
 }

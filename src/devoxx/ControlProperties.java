@@ -250,6 +250,14 @@ public class ControlProperties {
   public String getDevoxxHost() {
     return dataURL;
   }
+    
+  public boolean isDevoxxBelgium() {
+      return dataURL.contains("devoxx.be");
+  }
+
+  public boolean isDevoxxUK() {
+      return dataURL.contains("devoxx.co.uk");
+  }
 
   /**
    * Get the start date of Devoxx

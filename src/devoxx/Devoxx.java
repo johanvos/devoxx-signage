@@ -40,7 +40,7 @@ public class Devoxx extends Application {
     private FXMLDocumentController screenController;
 
     private DataFetcher dataFetcher;
-    private String roomNumber;
+    private String roomName;
     
     private final List<Presentation> newPresentations = new ArrayList<>();
     private List<Presentation> presentations;
@@ -98,21 +98,7 @@ public class Devoxx extends Application {
 
         presentations = dataFetcher.getPresentationList();
 
-        /**
-         * IMPORTANT:
-         *
-         * If you use this code for a venue that uses different naming for the
-         * rooms you will need to change this. Devoxx BE uses rooms with a
-         * single digit number and two BOF rooms.
-         */
-        if (room.startsWith("room")) {
-            roomNumber = room.substring("room".length());
-        } else if (room.startsWith("bof")) {
-            roomNumber = "BOF" + room.substring("bof".length());
-        } else {
-            LOGGER.severe("Room name not recognised (must be roomX or bofX)");
-            System.exit(4);
-        }
+        roomName = getRoomName(room);
 
         FXMLLoader myLoader = new FXMLLoader(getClass().getResource("FXMLDocument.fxml"));
         Parent root = (Parent) myLoader.load();
@@ -131,7 +117,7 @@ public class Devoxx extends Application {
         // stage.setFullScreen(true);
         stage.show();
 
-        screenController.setRoom(roomNumber);
+        screenController.setRoom(roomName);
         // update();
 
         /* Use a Timeline to periodically check for any updates to the published
@@ -153,6 +139,51 @@ public class Devoxx extends Application {
         updateTimeline.setCycleCount(INDEFINITE);
         updateTimeline.getKeyFrames().get(0).getOnFinished().handle(null);
         updateTimeline.play();
+    }
+
+   /**
+     * IMPORTANT:
+     *
+     * If you use this code for a venue that uses different naming for the
+     * rooms you will need to change this. 
+     * 
+     * Devoxx BE uses rooms with a single digit number and two BOF rooms.
+     * Devoxx UK uses room letters.
+     */
+    private String getRoomName(String room) {
+        String roomNumber = "";
+        
+        if (controlProperties.isDevoxxBelgium()) {
+            if (room.startsWith("room")) {
+                roomNumber = room.substring("room".length());
+            } else if (room.startsWith("bof")) {
+                roomNumber = "BOF" + room.substring("bof".length());
+            } else {
+                LOGGER.severe("Room name not recognised (must be roomX or bofX)");
+                System.exit(4);
+            }
+        } else if (controlProperties.isDevoxxUK()) {
+            if (room.startsWith("room")) {
+                switch (room.substring("room".length())) {
+                    case "1"    : roomNumber = "A";
+                    break;
+                    
+                    case "2"    : roomNumber = "B";
+                    break;
+                    
+                    case "3"    : roomNumber = "C";
+                    break;
+                    
+                    default     : roomNumber = "D";
+                }
+            } else {
+                roomNumber = "Auditorium";
+            }
+        } else {
+            LOGGER.severe("Don't know which Devoxx this is!!");
+            System.exit(4);
+        }
+        return roomNumber;
     }
 
     private void updateData() {
