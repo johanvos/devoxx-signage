@@ -15,11 +15,12 @@ Digital signage used at the Devoxx conference with Raspberry PIs.
 3. Run app on the pi, using 
 java -Djava.ext.dirs=/opt/armv6hf-sdk/rt/lib/ext -jar Devoxx.jar
 
+```
 # Start Digital Signage automatic on PI
 
-Create the following file /etc/rc.local with following commands
+You can create an /etc/rc.local file to start the signage app automatically.
 
-<syntaxhighlight lang="csh">
+<code>
 #!/bin/sh -e
 #
 # /etc/rc.local
@@ -43,4 +44,4 @@ cd /home/devoxx
 /opt/jdk8/bin/java -Xmx256m -Djava.util.logging.SimpleFormatter.format='%4$s: %5$s%6$s%n' -jar Devoxx.jar $ROOM /home/devoxx/signage.properties > /tmp/signage.log 2>&1
 
 exit 0
-</syntaxhighlight>
+```
