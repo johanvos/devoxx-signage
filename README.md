@@ -50,9 +50,9 @@ exit 0
 
 We've added some keyboard controls when the digital signage application is running.
 
-Q = Quit application, gives you login prompt
-U = Update display
-D = Update schedule data
-R = Refresh speaker cache
--> = Increment test time
-<- = Decrement test time
++ Q = Quit application, gives you login prompt
++ U = Update display
++ D = Update schedule data
++ R = Refresh speaker cache
++ -> = Increment test time
++ <- = Decrement test time
