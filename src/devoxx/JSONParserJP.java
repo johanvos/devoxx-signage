@@ -584,8 +584,7 @@ public class JSONParserJP {
         public void booleanValue(boolean value, int depth);
 
         /**
-         * This method is called when a key/value pair is detected within the
-         * json.
+         * This method is called when a key/value pair is detected within the JSON.
          *
          * @param key the key
          * @param value a stringValue value

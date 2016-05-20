@@ -66,7 +66,7 @@ public class Devoxx extends Application {
         // Print configuration info to std out for debugging
         printConfigInfo(propertiesFile, roomId);
 
-        // Getting all the Devoxx schedule data for the provided room
+        // Retrieving all the Devoxx schedule data for the provided room
         fetchRoomSchedule(roomId);
 
         // Get room name based on Devoxx BE or UK naming conventions
@@ -304,6 +304,9 @@ public class Devoxx extends Application {
         }
     }
     
+    /**
+     * Force refresh of the speakers image cache via key "R".
+     */
     private void refreshImageCache() {
         
         final String imageCache = controlProperties.getImageCache();
