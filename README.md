@@ -41,7 +41,7 @@ ROOM=room9
 #
 echo Starting Devoxx room display for $ROOM
 cd /home/devoxx
-/opt/jdk8/bin/java -Xmx256m -Djava.util.logging.SimpleFormatter.format='%4$s: %5$s%6$s%n' -jar Devoxx.jar $ROOM /home/devoxx/signage.properties > /tmp/signage.log 2>&1
+/opt/jdk8/bin/java -Xmx256m -Dfile.encoding=UTF-8 -Djava.util.logging.SimpleFormatter.format='%4$s: %5$s%6$s%n' -jar Devoxx.jar $ROOM /home/devoxx/signage.properties > /tmp/signage.log 2>&1
 
 exit 0
 ```
