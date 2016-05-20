@@ -86,7 +86,7 @@ public class JSONParserJP {
             HttpURLConnection connection = (HttpURLConnection) urlObj.openConnection();
             in = connection.getInputStream();
             File tempFile = new File(fileName + ".tmp");
-            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
             String line = br.readLine();
 
             try (BufferedWriter os = new BufferedWriter(new FileWriter(tempFile))) {

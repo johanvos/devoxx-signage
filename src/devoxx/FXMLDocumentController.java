@@ -3,11 +3,15 @@
  */
 package devoxx;
 
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Enumeration;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -77,12 +81,8 @@ public class FXMLDocumentController implements Initializable {
      * @param rb The resource bundle (not used in this app)
      */
     @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        try {
-            ipaddress.setText(InetAddress.getLocalHost().getHostAddress());
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.WARNING, "Unknown IP Address", ex);
-        }
+    public void initialize(final URL url, final ResourceBundle rb) {
+        ipaddress.setText(getPublicIpAddress());
         networkCircle.visibleProperty().bind(offline);
         /* Load fonts */
         lightFont = Font.loadFont(Devoxx.class.getResource("fonts/gothamexlight-webfont.ttf").toExternalForm(), 20);
@@ -123,6 +123,40 @@ public class FXMLDocumentController implements Initializable {
         sessionTitle.setFont(Font.font("Arial", FontWeight.BOLD, 45));
         time.setFont(Font.font("Arial", FontWeight.BOLD, 90));
     }
+    
+    /**
+     * For debugging reasons show the public IP address of the PI.
+     * @return public IP
+     */
+    private String getPublicIpAddress() {
+        String res = null;
+        try {
+            String localhost = InetAddress.getLocalHost().getHostAddress();
+            Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
+            while (e.hasMoreElements()) {
+                NetworkInterface ni = (NetworkInterface) e.nextElement();
+                if(ni.isLoopback()) {
+                    continue;
+                }
+                if(ni.isPointToPoint()) {
+                    continue;
+                }
+                Enumeration<InetAddress> addresses = ni.getInetAddresses();
+                while(addresses.hasMoreElements()) {
+                    InetAddress address = (InetAddress) addresses.nextElement();
+                    if(address instanceof Inet4Address) {
+                        String ip = address.getHostAddress();
+                        if(!ip.equals(localhost))
+                            System.out.println("Public IP :" + (res = ip));
+                    }
+                }
+            }
+        } catch (UnknownHostException | SocketException e) {
+            System.out.println(e.getCause()); 
+        }
+        return res;
+    }
+
 
     /**
      * Set the data for the screen
@@ -142,7 +176,7 @@ public class FXMLDocumentController implements Initializable {
 
         if (mainPreso != null && mainPreso.title != null) {
             sessionTitle.setText((mainPreso.title).toUpperCase());
-            sessionAbstract.setText(mainPreso.summary);
+            sessionAbstract.setText(mainPreso.summary);            
             sessionTime.setText(mainPreso.fromTime.format(TIME_FORMAT) + " - "
                 + mainPreso.toTime.format(TIME_FORMAT));
 
@@ -222,6 +256,7 @@ public class FXMLDocumentController implements Initializable {
          * moving the labels for the session and room and reducing the font size
          * of the room number
          */
+        
         if (room.startsWith("BOF")) {
             roomNumber.setFont(Font.font("Arial", FontWeight.BOLD, 120));
             roomNumber.setTranslateX(-160);
