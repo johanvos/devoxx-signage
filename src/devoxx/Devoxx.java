@@ -3,11 +3,10 @@
  */
 package devoxx;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -28,8 +27,10 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
 /**
- *
+ * The main Devoxx class.
+ * 
  * @author Angie
+ * @author Stephan007
  */
 public class Devoxx extends Application {
 
@@ -56,52 +57,72 @@ public class Devoxx extends Application {
      * @throws Exception If there is an error
      */
     @Override
-    public void start(Stage stage) throws Exception {
-        List<String> parameters = getParameters().getRaw();
-        String room = parameters.isEmpty() ? null : getParameters().getRaw().get(0).toLowerCase();
+    public void start(final Stage stage) throws Exception {
+                        
+        // Get property values
+        final String roomId = getRoomFromJVMParam();
+        final String propertiesFile = getPropertiesFileFromJVMParam();
 
+        // Print configuration info to std out for debugging
+        printConfigInfo(propertiesFile, roomId);
+
+        // Getting all the Devoxx schedule data for the provided room
+        fetchRoomSchedule(roomId);
+
+        // Get room name based on Devoxx BE or UK naming conventions
+        roomName = getRoomName(roomId);
+
+        // Start the JavaFX scene 
+        startFXScene(stage);
+
+        // Start data and JavaFX screen refresh timers
+        startDataRefreshTimer();
+        startScreenTimer();
+    }
+
+    private String getPropertiesFileFromJVMParam() {        
+        List<String> parameters = getParameters().getRaw();
+        
+        String propertiesFile = null;
+        if (parameters.size() > 1) {
+            propertiesFile = parameters.get(1);
+        }
+        return propertiesFile;
+    }
+
+    private String getRoomFromJVMParam() {
+        List<String> parameters = getParameters().getRaw();
+        
+        final String room = parameters.isEmpty() ? null : getParameters().getRaw().get(0).toLowerCase();
         if (room == null || room.isEmpty()) {
             System.out.println("Please specify a room to display");
             System.exit(1);
         }
+        return room;
+    }
 
-        String propertiesFile = null;
-
-        if (parameters.size() > 1) {
-            propertiesFile = parameters.get(1);
-        }
-
-        controlProperties = new ControlProperties(propertiesFile);
-        LOGGER.setLevel(controlProperties.getLoggingLevel());
-        LOGGER.setUseParentHandlers(false);
-        CONSOLDE_HANDLER.setLevel(controlProperties.getLoggingLevel());
-        LOGGER.addHandler(CONSOLDE_HANDLER);
-
-        LOGGER.fine("===================================================");
-        LOGGER.log(Level.FINE, "=== DEVOXX DISPLAY APP for [{0}]", room);
-
-        if (controlProperties.isTestMode()) {
-            LOGGER.finest("=== RUNNING IN TEST MODE...");
-        }
-
-        LOGGER.fine("===================================================");
-
-        /* Fetch the data from the Web service */
-        dataFetcher = new DataFetcher(LOGGER, controlProperties, room);
-
-        /* If the first read fails we don't really have any way to continue */
+    /**
+     * Fetch the data from the REST endpoint for selected room ID.
+     * @param roomId the room ID
+     */
+    private void fetchRoomSchedule(final String roomId) {
+        
+        dataFetcher = new DataFetcher(LOGGER, controlProperties, roomId);
+        
+        // If the first read fails we don't really have any way to continue
         if (!dataFetcher.updateData()) {
             System.err.println("Error retrieving initial data from server");
             System.err.println("Bailing out!");
             System.exit(1);
         }
-
+        
         presentations = dataFetcher.getPresentationList();
+    }
 
-        roomName = getRoomName(room);
-
-        FXMLLoader myLoader = new FXMLLoader(getClass().getResource("FXMLDocument.fxml"));
-        Parent root = (Parent) myLoader.load();
+    private void startFXScene(final Stage stage) throws IOException {
+        final FXMLLoader myLoader = new FXMLLoader(getClass().getResource("FXMLDocument.fxml"));
+        final Parent root = (Parent) myLoader.load();
+        
         screenController = ((FXMLDocumentController) myLoader.getController());
 
         if (controlProperties.isTestMode()) {
@@ -109,36 +130,64 @@ public class Devoxx extends Application {
             root.setScaleY(controlProperties.getTestScale());
         }
 
-        Scene scene = new Scene(root);
+        final Scene scene = new Scene(root);
         scene.setOnKeyPressed(e -> handleKeyPress(e));
         scene.setFill(null);
         stage.initStyle(StageStyle.UNDECORATED);
         stage.setScene(scene);
-        // stage.setFullScreen(true);
         stage.show();
 
         screenController.setRoom(roomName);
-        // update();
+    }
 
-        /* Use a Timeline to periodically check for any updates to the published
-         * data in case of last minute changes
-         */
-        Timeline downloadTimeline = new Timeline(new KeyFrame(
-            Duration.minutes(controlProperties.getDataRefreshTime()),
-            (ActionEvent t) -> updateData()));
-        downloadTimeline.setCycleCount(INDEFINITE);
-        downloadTimeline.play();
-
-        /* Use another timeline to periodically update the screen display so 
-         * the time changes and the session information correctly reflects what's
-         * happening
-         */
+    /* Use another timeline to periodically update the screen display so
+    * the time changes and the session information correctly reflects what's
+    * happening
+    */
+    private void startScreenTimer() {
         Timeline updateTimeline = new Timeline(new KeyFrame(
-            Duration.seconds(controlProperties.getScreenRefreshTime()),
-            (ActionEvent t) -> update()));
+                Duration.seconds(controlProperties.getScreenRefreshTime()),
+                (ActionEvent t) -> updateDisplay()));
         updateTimeline.setCycleCount(INDEFINITE);
         updateTimeline.getKeyFrames().get(0).getOnFinished().handle(null);
         updateTimeline.play();
+    }
+
+    /* Use a Timeline to periodically check for any updates to the published
+    * data in case of last minute changes
+    */
+    private void startDataRefreshTimer() {
+        Timeline downloadTimeline = new Timeline(new KeyFrame(
+                Duration.minutes(controlProperties.getDataRefreshTime()),
+                (ActionEvent t) -> updateData()));
+        downloadTimeline.setCycleCount(INDEFINITE);
+        downloadTimeline.play();
+    }
+
+    /**
+     * Log some control property details.
+     * 
+     * @param propertiesFile the properties file
+     * @param roomId the room ID
+     * @throws SecurityException 
+     */
+    private void printConfigInfo(final String propertiesFile, 
+                                 final String roomId) throws SecurityException {
+        
+        controlProperties = new ControlProperties(propertiesFile);
+        LOGGER.setLevel(controlProperties.getLoggingLevel());
+        LOGGER.setUseParentHandlers(false);
+        CONSOLDE_HANDLER.setLevel(controlProperties.getLoggingLevel());
+        LOGGER.addHandler(CONSOLDE_HANDLER);
+        
+        LOGGER.fine("===================================================");
+        LOGGER.log(Level.FINE, "=== DEVOXX DISPLAY APP for [{0}]", roomId);
+        
+        if (controlProperties.isTestMode()) {
+            LOGGER.finest("=== RUNNING IN TEST MODE...");
+        }
+        
+        LOGGER.fine("===================================================");
     }
 
    /**
@@ -189,7 +238,7 @@ public class Devoxx extends Application {
     private void updateData() {
         if (dataFetcher.updateData()) {
             screenController.setOnline();
-            update();
+            updateDisplay();
         } else {
             screenController.setOffline();
         }
@@ -210,7 +259,7 @@ public class Devoxx extends Application {
     /**
      * Update the display
      */
-    private void update() {
+    private void updateDisplay() {
         LocalDateTime now;
 
         if (controlProperties.isTestMode()) {
@@ -254,6 +303,32 @@ public class Devoxx extends Application {
             }
         }
     }
+    
+    private void refreshImageCache() {
+        
+        final String imageCache = controlProperties.getImageCache();
+        LOGGER.log(Level.FINER, "Recreating speaker cache at {0}", imageCache);
+        
+        final File file = new File(imageCache);
+        if (file.isDirectory()) {
+            
+            int totalCacheFiles = file.listFiles().length;
+            for (File cacheFile : file.listFiles()) {
+                cacheFile.delete();
+            }
+            
+            LOGGER.log(Level.FINER, "Deleted all {0} speaker cache photos", totalCacheFiles);
+            
+            for (Presentation preso : presentations) {
+                for (Speaker speaker : preso.speakers) {
+                    speaker.cachePhoto();
+                    LOGGER.log(Level.FINER, "Created speaker cache for {0}", speaker.fullName);
+                }
+            }
+        } else {
+            LOGGER.log(Level.FINER, "Speaker cache does not exist {0}", imageCache);
+        }        
+    }
 
     /**
      * Add a simple way to exit the app. Obviously you need to plug a keyboard
@@ -275,9 +350,13 @@ public class Devoxx extends Application {
                 controlProperties.incrementTestTime();
                 break;
             case U:
-                update();
+                updateDisplay();
                 break;
             case D:
+                updateData();
+                break;
+            case R:
+                refreshImageCache();
                 updateData();
                 break;
             default:

@@ -45,3 +45,14 @@ cd /home/devoxx
 
 exit 0
 ```
+
+# UI Controls
+
+We've added some keyboard controls when the digital signage application is running.
+
+Q = Quit application, gives you login prompt
+U = Update display
+D = Update schedule data
+R = Refresh speaker cache
+-> = Increment test time
+<- = Decrement test time

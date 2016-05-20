@@ -84,7 +84,8 @@ public class FXMLDocumentController implements Initializable {
     public void initialize(final URL url, final ResourceBundle rb) {
         ipaddress.setText(getPublicIpAddress());
         networkCircle.visibleProperty().bind(offline);
-        /* Load fonts */
+        
+        // Load fonts 
         lightFont = Font.loadFont(Devoxx.class.getResource("fonts/gothamexlight-webfont.ttf").toExternalForm(), 20);
         titleThin = Font.loadFont(Devoxx.class.getResource("fonts/gothamexlight-webfont.ttf").toExternalForm(), 40);
         qTypeBig = Font.loadFont(Devoxx.class.getResource("fonts/QTypeOT-SeextMedium.otf").toExternalForm(), 30);
@@ -129,7 +130,7 @@ public class FXMLDocumentController implements Initializable {
      * @return public IP
      */
     private String getPublicIpAddress() {
-        String res = null;
+        String res = "NoIP Cache";
         try {
             String localhost = InetAddress.getLocalHost().getHostAddress();
             Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();

@@ -27,7 +27,7 @@ import javafx.scene.shape.Circle;
  * @author Jasper Potts
  */
 public class Speaker {
-  private final Logger logger;
+  private Logger logger;
 
   public final String uuid;
   public final String fullName;
@@ -80,7 +80,7 @@ public class Speaker {
     }
 
     try {
-      URL imageURL = new URL(downloadURL);
+      final URL imageURL = new URL(downloadURL);
 
       if (!Files.exists(Paths.get(cache), LinkOption.NOFOLLOW_LINKS)) {
         Files.createDirectory(Paths.get(cache));
@@ -94,12 +94,12 @@ public class Speaker {
         byte[] buf = new byte[10240];
         int byteCount;
 
-        while ((byteCount = photoInputStream.read(buf)) > 0)
+        while ((byteCount = photoInputStream.read(buf)) > 0) {
           cacheFileOutputStream.write(buf, 0, byteCount);
+        }
       }
     } catch (Exception ioe) {
-      logger.log(Level.WARNING, "Unable to read photo for " + fullName
-          + " from " + downloadURL, ioe);
+      logger.log(Level.WARNING, "Unable to read photo for " + fullName + " from " + downloadURL, ioe);
     }
   }
 

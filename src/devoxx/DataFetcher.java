@@ -6,18 +6,14 @@ package devoxx;
 import devoxx.JSONParserJP.CallbackAdapter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 /**
  * Class for loading all session data from devoxx server
@@ -26,16 +22,40 @@ import java.util.stream.Stream;
  */
 public class DataFetcher {
 
-  private static final String[] DAY = {
-    "monday", "tuesday", "wednesday", "thursday", "friday"
-  };
+    // JSON file names
+    private static final String SPEAKERS_JSON = "speakers.json";
+
+    // JSON depth level
+    private static final int DEPTH_LEVEL_2 = 2;
+    private static final int DEPTH_LEVEL_3 = 3;
+    private static final int DEPTH_LEVEL_4 = 4;
+    private static final int DEPTH_LEVEL_7 = 7;
+
+    // JSON Keys values
+    private static final String KEY_HREF = "href";
+    private static final String KEY_TALK_TYPE = "talkType";
+    private static final String KEY_TRACK = "track";
+    private static final String KEY_SUMMARY = "summary";
+    private static final String KEY_ID = "id";
+    private static final String KEY_TO_TIME_MILLIS = "toTimeMillis";
+    private static final String KEY_FROM_TIME_MILLIS = "fromTimeMillis";
+    private static final String KEY_TITLE = "title";
+    private static final String KEY_ROOM_NAME = "roomName";
+    private static final String KEY_AVATAR_URL = "avatarURL";
+    private static final String KEY_COMPANY = "company";
+    private static final String KEY_BIO = "bio";
+    private static final String KEY_FIRST_NAME = "firstName";
+    private static final String KEY_LAST_NAME = "lastName";
+    private static final String KEY_UUID = "uuid";
+
+    private static final String[] DAYS = { "monday", "tuesday", "wednesday", "thursday", "friday"};
 
 //  private static final DateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm");
   private final Map<String, Speaker> speakerMap = new HashMap<>();
   private final Map<String, Presentation> presentationMap = new HashMap<>();
   private final List<Presentation> presentations = new ArrayList<>();
   private final Logger logger;
-  private final String room;
+  private final String roomId;
   private final String devoxxHost;
   private final LocalDate startDate;
   private final String imageCache;
@@ -45,13 +65,13 @@ public class DataFetcher {
    *
    * @param logger Where to log messages to
    * @param controlProperties control properties
-   * @param room Which room to get data for
+   * @param roomId Which room to get data for
    */
   public DataFetcher(final Logger logger, 
                      final ControlProperties controlProperties, 
-                     final String room) {
+                     final String roomId) {
     this.logger = logger;
-    this.room = room;
+    this.roomId = roomId;
     devoxxHost = controlProperties.getDevoxxHost();
     imageCache = controlProperties.getImageCache();
     startDate = controlProperties.getStartDate();
@@ -69,59 +89,86 @@ public class DataFetcher {
   /**
    * Try to update the data from the Devoxx CFP web service
    *
-   * @return Whether the update suceeded or failed
+   * @return Whether the update succeeded or failed
    */
   public boolean updateData() {
-    logger.log(Level.FINE, "Retrieving data for room {0}", room);
+    logger.log(Level.FINE, "Retrieving data for room {0}", roomId);
 
-    /* First get all the speakers data */
-    String dataUrl;
-
-    try {
-      logger.finer("Retrieving speaker data...");
-      dataUrl = devoxxHost + "speakers";
-      JSONParserJP.download(logger, dataUrl, "speakers.json");
-      JSONParserJP.parse(logger, "speakers.json", new SpeakerCallcack());
-    } catch (Exception e) {
-      logger.severe("Failed to retrieve speaker data!");
-      logger.severe(e.getMessage());
-      return false;
+    if (!getSpeakerDetails()) {
+        return false;
     }
 
-    logger.log(Level.INFO, "Found [{0}] SPEAKERS", speakerMap.size());
-
-    /* Now retrieve all the session data for the week */
-    for (int i = 0; i < 5; i++) {
-      try {
-        logger.log(Level.FINER, "Retrieving data for {0}", DAY[i]);
-        dataUrl = devoxxHost + "rooms/" + room + "/" + DAY[i];
-        logger.log(Level.FINEST, "{0} URL = {1}", new Object[]{DAY[i], dataUrl});
-        String jsonString = "schedule-" + DAY[i] + ".json";
-        JSONParserJP.download(logger, dataUrl, jsonString);
-        JSONParserJP.parse(logger, jsonString, new SessionCallcack());
-      } catch (Exception e) {
-        logger.log(Level.SEVERE, "Failed to retrieve schedule for {0}", DAY[i]);
-        logger.severe(e.getMessage());
-      }
+    if (!getScheduleDetails()) { 
+        return false;
     }
 
-    if (presentationMap.isEmpty()) {
-      logger.severe("Error: No presentation data downloaded!");
-      return false;
-    }
-
-    logger.log(Level.INFO, "Found [{0}] PRESENTATIONS\n", presentationMap.size());
-
-    /* Sort the presentation by time.  I'm not sure this is really
-     * necessary given the size of the data set (SR)
-     */
-    presentations.clear();
-    presentations.addAll(presentationMap.values());
-    Collections.sort(presentations,
-        (s1, s2) -> s1.fromTime.compareTo(s2.fromTime));
+    sortPresentations();
+    
     return true;
   }
 
+    private void sortPresentations() {
+        /* Sort the presentation by time.  I'm not sure this is really
+        * necessary given the size of the data set (SR)
+        */
+        presentations.clear();
+        presentations.addAll(presentationMap.values());
+        Collections.sort(presentations, (s1, s2) -> s1.fromTime.compareTo(s2.fromTime));
+    }
+
+    /**
+     * Retrieve all the session data for the week.
+     * @return true when successful
+     */
+    private boolean getScheduleDetails() {
+        for (int dayNbr = 0; dayNbr < DAYS.length; dayNbr++) {
+            try {
+                logger.log(Level.FINER, "Retrieving data for {0}", DAYS[dayNbr]);
+                String dataUrl = devoxxHost + "rooms/" + roomId + "/" + DAYS[dayNbr];
+                                
+                logger.log(Level.FINEST, "{0} URL = {1}", new Object[]{DAYS[dayNbr], dataUrl});
+                String jsonString = "schedule-" + DAYS[dayNbr] + ".json";
+                
+                JSONParserJP.download(logger, dataUrl, jsonString);
+                JSONParserJP.parse(logger, jsonString, new SessionCallcack());
+        
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Failed to retrieve schedule for {0}", DAYS[dayNbr]);
+                logger.severe(e.getMessage());
+            }
+        }   
+        
+        if (presentationMap.isEmpty()) {
+            logger.severe("Error: No presentation data downloaded!");
+            return false;
+        }
+        
+        logger.log(Level.INFO, "Found [{0}] PRESENTATIONS\n", presentationMap.size());
+        return true;
+    }
+
+    /**
+     * Retrieve all the speakers data.
+     * @return true when successful
+     */
+    private boolean getSpeakerDetails() {
+        logger.finer("Retrieving speaker data...");
+        
+        try {
+            JSONParserJP.download(logger, devoxxHost + "speakers", SPEAKERS_JSON);
+            
+            JSONParserJP.parse(logger, SPEAKERS_JSON, new SpeakerCallcack());
+        
+        } catch (Exception e) {
+            logger.severe("Failed to retrieve speaker data!");
+            logger.severe(e.getMessage());
+            return false;
+        }
+        
+        logger.log(Level.INFO, "Found [{0}] SPEAKERS", speakerMap.size());
+        return true;
+    }
+    
   /**
    * Callback class for handling Devoxx speaker JSON data
    */
@@ -144,26 +191,28 @@ public class DataFetcher {
      * @param depth The depth of the key/value
      */
     @Override
-    public void keyValue(String key, String value, int depth) {
-      if (depth == 2) {
+    public void keyValue(final String key, 
+                         final String value, 
+                         final int depth) {
+      if (DEPTH_LEVEL_2 == depth) {
         if (null != key) {
           switch (key) {
-            case "uuid":
+            case    KEY_UUID:
               uuid = value;
               break;
-            case "lastName":
+            case    KEY_LAST_NAME:
               lastName = value;
               break;
-            case "firstName":
+            case    KEY_FIRST_NAME:
               firstName = value;
               break;
-            case "bio":
+            case    KEY_BIO:
               bio = value;
               break;
-            case "company":
+            case    KEY_COMPANY:
               company = value;
               break;
-            case "avatarURL":
+            case    KEY_AVATAR_URL:
               imageUrl = value;
               break;
           }
@@ -180,7 +229,9 @@ public class DataFetcher {
      * contain this object
      */
     @Override
-    public void endObject(String objectName, int depth) {
+    public void endObject(final String objectName, 
+                          final int depth) {
+        
       logger.log(Level.FINEST, "End speaker object found: {0} {1}", new Object[]{firstName, lastName});
 
       if (depth == 1) {
@@ -224,15 +275,15 @@ public class DataFetcher {
                          final String value, 
                          final int depth) {
         
-      if (depth == 4 && "id".equals(key)) {
+      if (depth == DEPTH_LEVEL_4 && KEY_ID.equals(key)) {
         id = value;
-      } else if (depth == 4 && "summary".equals(key)) {
+      } else if (depth == DEPTH_LEVEL_4 && KEY_SUMMARY.equals(key)) {
         summary = value;
-      } else if (depth == 4 && "track".equals(key)) {
+      } else if (depth == DEPTH_LEVEL_4 && KEY_TRACK.equals(key)) {
         track = value;
-      } else if (depth == 4 && "talkType".equals(key)) {
+      } else if (depth == DEPTH_LEVEL_4 && KEY_TALK_TYPE.equals(key)) {
         type = value;
-      } else if (depth == 7 && "href".equals(key)) {
+      } else if (depth == DEPTH_LEVEL_7 && KEY_HREF.equals(key)) {
         Speaker speaker
             = speakerMap.get(value.substring(value.lastIndexOf('/') + 1));
 
@@ -241,14 +292,14 @@ public class DataFetcher {
         } else {
           speakers.add(speaker);
         }
-      } else if (depth == 3 && "roomName".equals(key)) {
+      } else if (depth == DEPTH_LEVEL_3 && KEY_ROOM_NAME.equals(key)) {
         room = value;
-      } else if (depth == 4 && "title".equals(key)) {
+      } else if (depth == DEPTH_LEVEL_4 && KEY_TITLE.equals(key)) {
         title = value;
         logger.log(Level.FINEST, "Title = {0}", title);
-      } else if (depth == 3 && "fromTimeMillis".equals(key)) {                    
+      } else if (depth == DEPTH_LEVEL_3 && KEY_FROM_TIME_MILLIS.equals(key)) {                    
           start = LocalDateTime.ofEpochSecond(Long.parseLong(value) / 1000, 0, ZoneOffset.ofTotalSeconds(3600));    // UTC+1
-      } else if (depth == 3 && "toTimeMillis".equals(key)) {
+      } else if (depth == DEPTH_LEVEL_3 && KEY_TO_TIME_MILLIS.equals(key)) {
           end = LocalDateTime.ofEpochSecond(Long.parseLong(value) / 1000, 0, ZoneOffset.ofTotalSeconds(3600));      // UTC+1
       } 
     }
@@ -264,7 +315,7 @@ public class DataFetcher {
     @Override
     public void endObject(final String objectName, 
                           final int depth) {
-      if (depth == 2 && title != null) {
+      if (DEPTH_LEVEL_2 == depth && title != null) {
         /* XXX LETS COME BACK AND FIGURE THIS OUT LATER */
         length = 0;
 
@@ -290,8 +341,9 @@ public class DataFetcher {
      * contain this object
      */
     @Override
-    public void startObject(String objectName, int depth) {
-      if (depth == 2) {
+    public void startObject(final String objectName, 
+                            final int depth) {
+      if (DEPTH_LEVEL_2 == depth) {
         speakers.clear();
       }
     }
