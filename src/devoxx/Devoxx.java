@@ -38,6 +38,9 @@ public class Devoxx extends Application {
 
     private final static Logger LOGGER = Logger.getLogger(Devoxx.class.getName());
     private final static ConsoleHandler CONSOLDE_HANDLER = new ConsoleHandler();
+
+    private static final int FIVE_MINUTES = 5;
+    private static final int HALF_HOUR = 30;
     
     private ControlProperties controlProperties;
     private FXMLDocumentController screenController;
@@ -353,19 +356,19 @@ public class Devoxx extends Application {
             case Q:
                 System.exit(0);
             case UP:
-                controlProperties.incrementTestTime(5);
+                controlProperties.incrementTestTime(FIVE_MINUTES);
                 updateDisplay();
                 break;
             case DOWN:
-                controlProperties.decrementTestTime(5);
+                controlProperties.decrementTestTime(FIVE_MINUTES);
                 updateDisplay();
                 break;
             case LEFT:
-                controlProperties.decrementTestTime(30);
+                controlProperties.decrementTestTime(HALF_HOUR);
                 updateDisplay();
                 break;
             case RIGHT:
-                controlProperties.incrementTestTime(30);
+                controlProperties.incrementTestTime(HALF_HOUR);
                 updateDisplay();
                 break;
             case U:

@@ -32,6 +32,7 @@ import java.util.logging.Logger;
  * Class for loading all session data from Devoxx server
  *
  * @author Jasper Potts
+ * @author Stephan
  */
 public class DataFetcher {
 
@@ -54,7 +55,6 @@ public class DataFetcher {
     /**
      * Constructor
      *
-     * @param logger Where to log messages to
      * @param controlProperties control properties
      * @param roomId Which room to get data for
      */
@@ -117,20 +117,19 @@ public class DataFetcher {
         presoJSONBuilder.registerTypeAdapter(Presentation.class, new PresentationDeserializer(speakerMap));
         final Gson gson = presoJSONBuilder.create();
 
-        for (int dayNbr = 0; dayNbr < DAYS.length; dayNbr++) {
+        for (String day : DAYS) {
             try {
-                LOGGER.log(Level.FINER, "Retrieving data for {0}", DAYS[dayNbr]);
-                String dataUrl = devoxxHost + "rooms/" + roomId + "/" + DAYS[dayNbr];
-
-                LOGGER.log(Level.FINEST, "{0} URL = {1}", new Object[]{DAYS[dayNbr], dataUrl});
-                String jsonString = "schedule-" + DAYS[dayNbr] + ".json";
-
-                ResourceUtil.download(dataUrl, jsonString);
-                    
-                parseScheduleJsonFile(jsonString, gson);
+                LOGGER.log(Level.FINER, "Retrieving data for {0}", day);
+                String dataUrl = devoxxHost + "rooms/" + roomId + "/" + day;
                 
+                LOGGER.log(Level.FINEST, "{0} URL = {1}", new Object[]{day, dataUrl});
+                String jsonString = "schedule-" + day + ".json";
+                
+                ResourceUtil.download(dataUrl, jsonString);
+                parseScheduleJsonFile(jsonString, gson);
+            
             } catch (IOException | JsonParseException e) {
-                LOGGER.log(Level.SEVERE, "Failed to retrieve schedule for {0}", DAYS[dayNbr]);
+                LOGGER.log(Level.SEVERE, "Failed to retrieve schedule for {0}", day);
                 LOGGER.severe(e.getMessage());
             }
         }
@@ -145,8 +144,7 @@ public class DataFetcher {
     }
 
     private void parseScheduleJsonFile(String jsonString, Gson gson) throws IOException, JsonParseException {
-        Presentation presentations[] = null;
-        
+                
         try(Reader reader = new InputStreamReader(new FileInputStream(new File(jsonString)), "UTF-8")){
             JsonParser parser = new JsonParser();
             JsonElement root = parser.parse(reader);
@@ -156,7 +154,7 @@ public class DataFetcher {
             JsonArray slots = obj.getAsJsonArray("slots");
             
             if (slots.size() > 0) {
-                presentations = gson.fromJson(slots, Presentation[].class);
+                Presentation presentations[] = gson.fromJson(slots, Presentation[].class);
                 
                 for (Presentation presentation : presentations) {
                     if (presentation != null && !presentation.title.isEmpty()) {
@@ -180,7 +178,7 @@ public class DataFetcher {
 
             parseSpeakersJSONFile();
 
-        } catch (Exception e) {
+        } catch (IOException | JsonParseException e) {
             LOGGER.severe("Failed to retrieve speaker data!");
             LOGGER.severe(e.getMessage());
             return false;

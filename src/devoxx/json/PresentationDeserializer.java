@@ -66,8 +66,12 @@ public class PresentationDeserializer implements JsonDeserializer<Presentation> 
             String toTime = jsonObject.get("toTimeMillis").getAsString();
             String day = jsonObject.get("day").getAsString();
 
-            LocalDateTime start = LocalDateTime.ofEpochSecond(Long.parseLong(fromTime) / 1000, 0, ZoneOffset.ofTotalSeconds(3600));    // UTC+1
-            LocalDateTime end = LocalDateTime.ofEpochSecond(Long.parseLong(toTime) / 1000, 0, ZoneOffset.ofTotalSeconds(3600));    // UTC+1
+            // 
+            // Not sure if this will need to get changed at Devoxx UK : ZoneOffset.ofTotalSeconds(3600)
+            //
+            // UTC+1
+            LocalDateTime start = LocalDateTime.ofEpochSecond(Long.parseLong(fromTime) / 1000, 0, ZoneOffset.ofTotalSeconds(3600));    
+            LocalDateTime end = LocalDateTime.ofEpochSecond(Long.parseLong(toTime) / 1000, 0, ZoneOffset.ofTotalSeconds(3600));    
 
             return new Presentation(id, title, roomId, start, end, 0, summary, speakers.toArray(new Speaker[speakers.size()]), track, talkType);
         } else {
