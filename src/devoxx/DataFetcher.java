@@ -323,13 +323,18 @@ public class DataFetcher {
                 Presentation presentation = new Presentation(logger, id, title, room, start, end, length);
                 presentationMap.put(id, presentation);
 
-                System.out.println("presentation = " + presentation.title + " (" + presentation.fromTime + " - " + presentation.toTime + ")");
-
                 presentation.setExtended(
                         summary,
                         speakers.toArray(new Speaker[speakers.size()]),
                         track,
                         type);
+                
+                // Show presentation details to stdout
+                System.out.print("presentation = " + presentation.title + " by ");
+                for (Speaker speaker : presentation.speakers) {
+                    System.out.print(speaker.fullName + " ");
+                }
+                System.out.println(" (" + presentation.fromTime + " - " + presentation.toTime + ")");
             }
         }
 

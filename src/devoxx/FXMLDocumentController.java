@@ -13,6 +13,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Enumeration;
 import java.util.ResourceBundle;
+import java.util.StringJoiner;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
@@ -44,7 +45,8 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     Label sessionLbl, roomLbl, roomNumber, currentTimeTitleLbl, time,
         sessionTitle, sessionTime, sessionAbstract, sessionsTitleLbl,
-        talk1Time, talk1Title, talk2Time, talk2Title, talk3Time, talk3Title;
+        talk1Time, talk1Title, talk2Time, talk2Title, talk3Time, talk3Title,
+        talk2Speaker, talk3Speaker;
 
     @FXML
     VBox speakersVBox, speaker1, speaker2, speaker3;
@@ -56,8 +58,8 @@ public class FXMLDocumentController implements Initializable {
     Label speakerName1, speakerName2, speakerName3, ipaddress;
 
     Font lightFont, qTypeBig, qTypeSml, titleThin, gothambookBig,
-        gothambookMed, gothambookSml, titleHuge, titleBig, timeFont,
-        roomNumberFont;
+        gothambookMed, gothambookSml, gothambookTiny, titleHuge, 
+        titleBig, timeFont, roomNumberFont;
     
     @FXML Circle networkCircle;
 
@@ -90,6 +92,7 @@ public class FXMLDocumentController implements Initializable {
         gothambookBig = Font.loadFont(Devoxx.class.getResource("fonts/gothambook-webfont.ttf").toExternalForm(), 35);
         gothambookMed = Font.loadFont(Devoxx.class.getResource("fonts/gothambook-webfont.ttf").toExternalForm(), 28);
         gothambookSml = Font.loadFont(Devoxx.class.getResource("fonts/gothambook-webfont.ttf").toExternalForm(), 25);
+        gothambookTiny = Font.loadFont(Devoxx.class.getResource("fonts/gothambook-webfont.ttf").toExternalForm(), 18);
         titleHuge = Font.loadFont(Devoxx.class.getResource("fonts/GillSans.ttc").toExternalForm(), 83);
         setFonts();
 
@@ -114,7 +117,9 @@ public class FXMLDocumentController implements Initializable {
         talk1Title.setFont(gothambookBig);
         sessionAbstract.setFont(gothambookMed);
         talk2Title.setFont(gothambookSml);
+        talk2Speaker.setFont(gothambookTiny);
         talk3Title.setFont(gothambookSml);
+        talk3Speaker.setFont(gothambookTiny);
         sessionLbl.setFont(Font.font("Arial", FontWeight.BOLD, 83));
         roomLbl.setFont(Font.font("Arial", FontWeight.BOLD, 83));
         roomNumber.setFont(Font.font("Arial", FontWeight.BOLD, 195));
@@ -186,15 +191,24 @@ public class FXMLDocumentController implements Initializable {
              * VBox). This still does not work properly (Mark Reinhold is a good
              * test case)
              */
+            if (mainPreso.speakers.length > MAX_VISIBILE_SPEAKER_THUMBNAILS) {
+                speakersVBox.setSpacing(40);
+            } else {
+                speakersVBox.setSpacing(0);
+            }
+            
             for (Speaker speaker : mainPreso.speakers) {
 
                 VBox speakerBox = new VBox();
                 speakerBox.setSpacing(5);
-                HBox photoBox = new HBox();
-                photoBox.setAlignment(Pos.CENTER);
-                photoBox.getChildren().add(speaker.getPhoto());
-                speakerBox.getChildren().add(photoBox);
-
+                
+                if (mainPreso.speakers.length <= MAX_VISIBILE_SPEAKER_THUMBNAILS) {
+                    HBox photoBox = new HBox();
+                    photoBox.setAlignment(Pos.CENTER);
+                    photoBox.getChildren().add(speaker.getPhoto());
+                    speakerBox.getChildren().add(photoBox);
+                } 
+                
                 HBox nameBox = new HBox();
                 nameBox.setAlignment(Pos.CENTER);
                 Label name = new Label(speaker.fullName.toUpperCase());
@@ -204,7 +218,6 @@ public class FXMLDocumentController implements Initializable {
 
                 speakersVBox.getChildren().add(speakerBox);
             }
-
             talk1Title.setText(mainPreso.title);
             talk1Time.setText(mainPreso.fromTime.format(TIME_FORMAT) + " - "
                 + mainPreso.toTime.format(TIME_FORMAT));
@@ -217,7 +230,12 @@ public class FXMLDocumentController implements Initializable {
         }
 
         if (secondPreso != null) {
+            final StringJoiner sj = new StringJoiner(", ");            
+            for (Speaker speaker : secondPreso.speakers) {
+                sj.add(speaker.fullName);
+            }
             talk2Title.setText(secondPreso.title);
+            talk2Speaker.setText("by " + sj.toString());
             talk2Time.setText(secondPreso.fromTime.format(TIME_FORMAT) + " - "
                 + secondPreso.toTime.format(TIME_FORMAT));
         } else {
@@ -226,7 +244,12 @@ public class FXMLDocumentController implements Initializable {
         }
 
         if (thirdPreso != null) {
+            final StringJoiner sj = new StringJoiner(", ");            
+            for (Speaker speaker : thirdPreso.speakers) {
+                sj.add(speaker.fullName);
+            }
             talk3Title.setText(thirdPreso.title);
+            talk3Speaker.setText("by " + sj.toString());
             talk3Time.setText(thirdPreso.fromTime.format(TIME_FORMAT) + " - "
                 + thirdPreso.toTime.format(TIME_FORMAT));
         } else {
@@ -234,6 +257,7 @@ public class FXMLDocumentController implements Initializable {
             talk3Time.setText("");
         }
     }
+    private static final int MAX_VISIBILE_SPEAKER_THUMBNAILS = 3;
     
     public void setOnline() {
         offline.set(false);

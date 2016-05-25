@@ -80,6 +80,10 @@ public class Devoxx extends Application {
         startScreenTimer();
     }
 
+    /**
+     * Get the Devoxx properties file.
+     * @return full path to property file
+     */
     private String getPropertiesFileFromJVMParam() {        
         List<String> parameters = getParameters().getRaw();
         
@@ -90,6 +94,10 @@ public class Devoxx extends Application {
         return propertiesFile;
     }
 
+    /**
+     * Get the required room ID from JVM parameters.
+     * @return the room ID
+     */
     private String getRoomFromJVMParam() {
         List<String> parameters = getParameters().getRaw();
         
@@ -133,6 +141,7 @@ public class Devoxx extends Application {
         final Scene scene = new Scene(root);
         scene.setOnKeyPressed(e -> handleKeyPress(e));
         scene.setFill(null);
+        
         stage.initStyle(StageStyle.UNDECORATED);
         stage.setScene(scene);
         stage.show();
@@ -245,18 +254,6 @@ public class Devoxx extends Application {
     }
 
     /**
-     * The main() method is ignored in correctly deployed JavaFX application.
-     * main() serves only as fallback in case the application can not be
-     * launched through deployment artifacts, e.g., in IDEs with limited FX
-     * support. NetBeans ignores main().
-     *
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {        
-        launch(args);
-    }
-
-    /**
      * Update the display
      */
     private void updateDisplay() {
@@ -348,9 +345,11 @@ public class Devoxx extends Application {
                 System.exit(0);
             case LEFT:
                 controlProperties.decrementTestTime();
+                updateDisplay();
                 break;
             case RIGHT:
                 controlProperties.incrementTestTime();
+                updateDisplay();
                 break;
             case U:
                 updateDisplay();
@@ -365,5 +364,17 @@ public class Devoxx extends Application {
             default:
                 break;
         }
+    }
+    
+    /**
+     * The main() method is ignored in correctly deployed JavaFX application.
+     * main() serves only as fallback in case the application can not be
+     * launched through deployment artifacts, e.g., in IDEs with limited FX
+     * support. NetBeans ignores main().
+     *
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {        
+        launch(args);
     }
 }
