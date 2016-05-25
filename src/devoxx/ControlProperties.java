@@ -359,7 +359,7 @@ public class ControlProperties {
     /**
      * Get the test day
      *
-     * @return The day to yuse for testing
+     * @return The day to use for testing
      */
     public int getTestDay() {
         return testDay;
@@ -375,16 +375,16 @@ public class ControlProperties {
     }
 
     public void incrementTestTime() {
-        testTime = getTestTime().plusHours(1);
-        if (getTestTime().isBefore(LocalTime.of(1, 0))) {
+        testTime = getTestTime().plusMinutes(30);
+        if (getTestTime().isBefore(LocalTime.of(0, 30))) {
             testDay++;
         }
     }
 
     public void decrementTestTime() {
-        if (getTestTime().isBefore(LocalTime.of(1, 0))) {
+        if (getTestTime().isBefore(LocalTime.of(0, 30))) {
             testDay--;
         }
-        testTime = getTestTime().minusHours(1);
+        testTime = getTestTime().minusMinutes(30);
     }
 }

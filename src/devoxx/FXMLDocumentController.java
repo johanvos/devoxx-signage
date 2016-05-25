@@ -3,6 +3,9 @@
  */
 package devoxx;
 
+import devoxx.Devoxx;
+import devoxx.model.Speaker;
+import devoxx.model.Presentation;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -36,6 +39,8 @@ import javafx.util.Duration;
  * @author Angie
  */
 public class FXMLDocumentController implements Initializable {
+
+    private static final int MAX_VISIBILE_SPEAKER_THUMBNAILS = 3;
 
     private static final DateTimeFormatter TIME_FORMAT
         = DateTimeFormatter.ofPattern("HH:mm");
@@ -191,17 +196,22 @@ public class FXMLDocumentController implements Initializable {
              * VBox). This still does not work properly (Mark Reinhold is a good
              * test case)
              */
-            if (mainPreso.speakers.length > MAX_VISIBILE_SPEAKER_THUMBNAILS) {
-                speakersVBox.setSpacing(40);
-            } else {
+            if (mainPreso.speakers.length == 1) {
                 speakersVBox.setSpacing(0);
-            }
+            } else if (mainPreso.speakers.length == 2) {
+                speakersVBox.setSpacing(30);
+            } if (mainPreso.speakers.length == 3) {
+                speakersVBox.setSpacing(20);
+            } else if (mainPreso.speakers.length > MAX_VISIBILE_SPEAKER_THUMBNAILS) {
+                speakersVBox.setSpacing(40);
+            } 
             
             for (Speaker speaker : mainPreso.speakers) {
 
                 VBox speakerBox = new VBox();
                 speakerBox.setSpacing(5);
                 
+                // Only show speaker thumbnail if they can all fit  :) 
                 if (mainPreso.speakers.length <= MAX_VISIBILE_SPEAKER_THUMBNAILS) {
                     HBox photoBox = new HBox();
                     photoBox.setAlignment(Pos.CENTER);
@@ -230,34 +240,28 @@ public class FXMLDocumentController implements Initializable {
         }
 
         if (secondPreso != null) {
-            final StringJoiner sj = new StringJoiner(", ");            
-            for (Speaker speaker : secondPreso.speakers) {
-                sj.add(speaker.fullName);
-            }
+            
+            talk2Speaker.setText(secondPreso.getSpeakerList());
             talk2Title.setText(secondPreso.title);
-            talk2Speaker.setText("by " + sj.toString());
             talk2Time.setText(secondPreso.fromTime.format(TIME_FORMAT) + " - "
                 + secondPreso.toTime.format(TIME_FORMAT));
         } else {
             talk2Title.setText("");
+            talk2Speaker.setText("");
             talk2Time.setText("");
         }
 
         if (thirdPreso != null) {
-            final StringJoiner sj = new StringJoiner(", ");            
-            for (Speaker speaker : thirdPreso.speakers) {
-                sj.add(speaker.fullName);
-            }
+            talk3Speaker.setText(thirdPreso.getSpeakerList());
             talk3Title.setText(thirdPreso.title);
-            talk3Speaker.setText("by " + sj.toString());
             talk3Time.setText(thirdPreso.fromTime.format(TIME_FORMAT) + " - "
                 + thirdPreso.toTime.format(TIME_FORMAT));
-        } else {
+        } else {            
             talk3Title.setText("");
+            talk3Speaker.setText("");
             talk3Time.setText("");
         }
     }
-    private static final int MAX_VISIBILE_SPEAKER_THUMBNAILS = 3;
     
     public void setOnline() {
         offline.set(false);

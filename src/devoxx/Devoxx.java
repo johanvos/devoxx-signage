@@ -3,6 +3,8 @@
  */
 package devoxx;
 
+import devoxx.model.Speaker;
+import devoxx.model.Presentation;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -115,7 +117,7 @@ public class Devoxx extends Application {
      */
     private void fetchRoomSchedule(final String roomId) {
         
-        dataFetcher = new DataFetcher(LOGGER, controlProperties, roomId);
+        dataFetcher = new DataFetcher(controlProperties, roomId);
         
         // If the first read fails we don't really have any way to continue
         if (!dataFetcher.updateData()) {
