@@ -55,7 +55,7 @@
         <Font size="40.0" fx:id="x3" />
       </font>
     </Label>
-    <Label fx:id="time" layoutX="1429.0" layoutY="317.0" text="5:55 PM">
+    <Label fx:id="time" layoutX="1500.0" layoutY="317.0" text="5:55 PM">
       <font>
         <Font size="90.0" />
       </font>

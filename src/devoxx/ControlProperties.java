@@ -122,7 +122,7 @@ public class ControlProperties {
         String value = properties.getProperty(TESTTIME);
         testTime = LocalTime.parse(value, DateTimeFormatter.ISO_LOCAL_TIME);
     }
-
+    
     private void setTestDay() throws NumberFormatException {
         String value = properties.getProperty(TESTDAY);
         testDay = Integer.parseInt(value);
@@ -131,6 +131,14 @@ public class ControlProperties {
     private void setTestScale() throws NumberFormatException {
         String value = properties.getProperty(TESTSCALE);
         testScale = Double.parseDouble(value);
+    }
+    
+    public void toggleRunMode() {
+        if (isTestMode()) {
+            mode = MODE_REAL;
+        } else {
+            mode = MODE_TEST;
+        }
     }
 
     private String setRunMode() {
@@ -374,17 +382,17 @@ public class ControlProperties {
         return testTime;
     }
 
-    public void incrementTestTime() {
-        testTime = getTestTime().plusMinutes(30);
-        if (getTestTime().isBefore(LocalTime.of(0, 30))) {
+    public void incrementTestTime(int minutes) {
+        testTime = getTestTime().plusMinutes(minutes);
+        if (getTestTime().isBefore(LocalTime.of(0, minutes))) {
             testDay++;
         }
     }
 
-    public void decrementTestTime() {
-        if (getTestTime().isBefore(LocalTime.of(0, 30))) {
+    public void decrementTestTime(int minutes) {
+        if (getTestTime().isBefore(LocalTime.of(0, minutes))) {
             testDay--;
         }
-        testTime = getTestTime().minusMinutes(30);
+        testTime = getTestTime().minusMinutes(minutes);
     }
 }

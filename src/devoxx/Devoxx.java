@@ -134,11 +134,14 @@ public class Devoxx extends Application {
         final Parent root = (Parent) myLoader.load();
         
         screenController = ((FXMLDocumentController) myLoader.getController());
-
+                        
         if (controlProperties.isTestMode()) {
             root.setScaleX(controlProperties.getTestScale());
             root.setScaleY(controlProperties.getTestScale());
-        }
+            
+        } 
+        
+        screenController.setClock(controlProperties);        
 
         final Scene scene = new Scene(root);
         scene.setOnKeyPressed(e -> handleKeyPress(e));
@@ -147,26 +150,28 @@ public class Devoxx extends Application {
         stage.initStyle(StageStyle.UNDECORATED);
         stage.setScene(scene);
         stage.show();
-
+        
         screenController.setRoom(roomName);
     }
 
-    /* Use another timeline to periodically update the screen display so
-    * the time changes and the session information correctly reflects what's
-    * happening
-    */
-    private void startScreenTimer() {
+    /** 
+     * Use another Timeline to periodically update the screen display so
+     * the time changes and the session information correctly reflects what's
+     * happening
+     */
+    private void startScreenTimer() {        
         Timeline updateTimeline = new Timeline(new KeyFrame(
                 Duration.seconds(controlProperties.getScreenRefreshTime()),
                 (ActionEvent t) -> updateDisplay()));
         updateTimeline.setCycleCount(INDEFINITE);
         updateTimeline.getKeyFrames().get(0).getOnFinished().handle(null);
-        updateTimeline.play();
+        updateTimeline.play();        
     }
 
-    /* Use a Timeline to periodically check for any updates to the published
-    * data in case of last minute changes
-    */
+    /**
+     * Use a Timeline to periodically check for any updates to the published
+     * data in case of last minute changes
+     */
     private void startDataRefreshTimer() {
         Timeline downloadTimeline = new Timeline(new KeyFrame(
                 Duration.minutes(controlProperties.getDataRefreshTime()),
@@ -261,6 +266,8 @@ public class Devoxx extends Application {
     private void updateDisplay() {
         LocalDateTime now;
 
+        screenController.setClock(controlProperties);
+        
         if (controlProperties.isTestMode()) {
             now = LocalDateTime.of(
                 controlProperties.getStartDate()
@@ -345,12 +352,20 @@ public class Devoxx extends Application {
             switch (code) {
             case Q:
                 System.exit(0);
+            case UP:
+                controlProperties.incrementTestTime(5);
+                updateDisplay();
+                break;
+            case DOWN:
+                controlProperties.decrementTestTime(5);
+                updateDisplay();
+                break;
             case LEFT:
-                controlProperties.decrementTestTime();
+                controlProperties.decrementTestTime(30);
                 updateDisplay();
                 break;
             case RIGHT:
-                controlProperties.incrementTestTime();
+                controlProperties.incrementTestTime(30);
                 updateDisplay();
                 break;
             case U:
@@ -361,6 +376,11 @@ public class Devoxx extends Application {
                 break;
             case R:
                 refreshImageCache();
+                updateData();
+                break;
+            case T:
+                controlProperties.toggleRunMode();
+                updateDisplay();
                 updateData();
                 break;
             default:

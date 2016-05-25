@@ -16,7 +16,6 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Enumeration;
 import java.util.ResourceBundle;
-import java.util.StringJoiner;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
@@ -42,10 +41,11 @@ public class FXMLDocumentController implements Initializable {
 
     private static final int MAX_VISIBILE_SPEAKER_THUMBNAILS = 3;
 
-    private static final DateTimeFormatter TIME_FORMAT
-        = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
     
     private final BooleanProperty offline = new SimpleBooleanProperty(false);
+    
+    private Timeline timeline;
 
     @FXML
     Label sessionLbl, roomLbl, roomNumber, currentTimeTitleLbl, time,
@@ -55,7 +55,7 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     VBox speakersVBox, speaker1, speaker2, speaker3;
-
+    
     @FXML
     ImageView speakerImg1, speakerImg2, speakerImg3;
 
@@ -99,14 +99,30 @@ public class FXMLDocumentController implements Initializable {
         gothambookSml = Font.loadFont(Devoxx.class.getResource("fonts/gothambook-webfont.ttf").toExternalForm(), 25);
         gothambookTiny = Font.loadFont(Devoxx.class.getResource("fonts/gothambook-webfont.ttf").toExternalForm(), 18);
         titleHuge = Font.loadFont(Devoxx.class.getResource("fonts/GillSans.ttc").toExternalForm(), 83);
-        setFonts();
-
-        KeyFrame keyFrame = new KeyFrame(Duration.minutes(1),
-            t -> time.setText(LocalTime.now().format(TIME_FORMAT)));
-        Timeline timeline = new Timeline(keyFrame);
-        timeline.setCycleCount(Timeline.INDEFINITE);
-        timeline.getKeyFrames().get(0).getOnFinished().handle(null);
-        timeline.play();
+        setFonts();        
+    }
+    
+    public void setClock(final ControlProperties ctrl) {
+                
+        if (ctrl.isTestMode()) {
+            time.setTranslateX(-150);
+            time.setText(ctrl.getTestTime().format(TIME_FORMAT)+ " - TEST");            
+            if (timeline != null) {
+                timeline.stop();
+            }
+        } else {
+            time.setTranslateX(0);
+            KeyFrame keyFrame = new KeyFrame(Duration.minutes(1),
+                    t -> time.setText(LocalTime.now().format(TIME_FORMAT)));
+            
+            if (timeline == null) {
+                timeline = new Timeline(keyFrame);
+            }
+            
+            timeline.setCycleCount(Timeline.INDEFINITE);
+            timeline.getKeyFrames().get(0).getOnFinished().handle(null);           
+            timeline.play();                
+        }
     }
 
     /**
@@ -164,7 +180,6 @@ public class FXMLDocumentController implements Initializable {
         }
         return res;
     }
-
 
     /**
      * Set the data for the screen
