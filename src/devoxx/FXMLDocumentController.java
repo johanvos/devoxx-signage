@@ -40,6 +40,12 @@ import javafx.util.Duration;
 public class FXMLDocumentController implements Initializable {
 
     private static final int MAX_VISIBILE_SPEAKER_THUMBNAILS = 3;
+    
+    private static final String FONTS_GILL_SANSTTC = "fonts/GillSans.ttc";
+    private static final String FONTS_GOTHAM_EXLIGHT_WEBFONT_TTF = "fonts/gothamexlight-webfont.ttf";
+    private static final String FONTS_Q_TYPE_OT_SEEXT_MEDIUMOTF = "fonts/QTypeOT-SeextMedium.otf";
+    private static final String FONTS_GOTHAMBOOK_WEBFONT_TTF = "fonts/gothambook-webfont.ttf";
+    private static final String FONTS_ARIAL = "Arial";
 
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
     
@@ -64,7 +70,7 @@ public class FXMLDocumentController implements Initializable {
 
     Font lightFont, qTypeBig, qTypeSml, titleThin, gothambookBig,
         gothambookMed, gothambookSml, gothambookTiny, titleHuge, 
-        titleBig, timeFont, roomNumberFont;
+        titleBig, timeFont, roomNumberFont, arialSmall;
     
     @FXML Circle networkCircle;
 
@@ -90,15 +96,16 @@ public class FXMLDocumentController implements Initializable {
         networkCircle.visibleProperty().bind(offline);
         
         // Load fonts 
-        lightFont = Font.loadFont(Devoxx.class.getResource("fonts/gothamexlight-webfont.ttf").toExternalForm(), 20);
-        titleThin = Font.loadFont(Devoxx.class.getResource("fonts/gothamexlight-webfont.ttf").toExternalForm(), 40);
-        qTypeBig = Font.loadFont(Devoxx.class.getResource("fonts/QTypeOT-SeextMedium.otf").toExternalForm(), 30);
-        qTypeSml = Font.loadFont(Devoxx.class.getResource("fonts/QTypeOT-SeextMedium.otf").toExternalForm(), 23);
-        gothambookBig = Font.loadFont(Devoxx.class.getResource("fonts/gothambook-webfont.ttf").toExternalForm(), 35);
-        gothambookMed = Font.loadFont(Devoxx.class.getResource("fonts/gothambook-webfont.ttf").toExternalForm(), 28);
-        gothambookSml = Font.loadFont(Devoxx.class.getResource("fonts/gothambook-webfont.ttf").toExternalForm(), 25);
-        gothambookTiny = Font.loadFont(Devoxx.class.getResource("fonts/gothambook-webfont.ttf").toExternalForm(), 18);
-        titleHuge = Font.loadFont(Devoxx.class.getResource("fonts/GillSans.ttc").toExternalForm(), 83);
+        lightFont = Font.loadFont(Devoxx.class.getResource(FONTS_GOTHAMBOOK_WEBFONT_TTF).toExternalForm(), 20);
+        titleThin = Font.loadFont(Devoxx.class.getResource(FONTS_GOTHAM_EXLIGHT_WEBFONT_TTF).toExternalForm(), 40);
+        qTypeBig = Font.loadFont(Devoxx.class.getResource(FONTS_Q_TYPE_OT_SEEXT_MEDIUMOTF).toExternalForm(), 30);
+        qTypeSml = Font.loadFont(Devoxx.class.getResource(FONTS_Q_TYPE_OT_SEEXT_MEDIUMOTF).toExternalForm(), 23);
+        gothambookBig = Font.loadFont(Devoxx.class.getResource(FONTS_GOTHAMBOOK_WEBFONT_TTF).toExternalForm(), 35);
+        gothambookMed = Font.loadFont(Devoxx.class.getResource(FONTS_GOTHAMBOOK_WEBFONT_TTF).toExternalForm(), 28);
+        gothambookSml = Font.loadFont(Devoxx.class.getResource(FONTS_GOTHAMBOOK_WEBFONT_TTF).toExternalForm(), 25);
+        gothambookTiny = Font.loadFont(Devoxx.class.getResource(FONTS_GOTHAMBOOK_WEBFONT_TTF).toExternalForm(), 18);
+        titleHuge = Font.loadFont(Devoxx.class.getResource(FONTS_GILL_SANSTTC).toExternalForm(), 83);
+        arialSmall = Font.font(FONTS_ARIAL, FontWeight.LIGHT, 18);
         setFonts();        
     }
     
@@ -135,18 +142,19 @@ public class FXMLDocumentController implements Initializable {
         talk3Time.setFont(qTypeSml);
         currentTimeTitleLbl.setFont(titleThin);
         sessionsTitleLbl.setFont(titleThin);
-        talk1Title.setFont(gothambookBig);
         sessionAbstract.setFont(gothambookMed);
+        talk1Title.setFont(gothambookBig);
         talk2Title.setFont(gothambookSml);
-        talk2Speaker.setFont(gothambookTiny);
+        talk2Speaker.setFont(arialSmall);
         talk3Title.setFont(gothambookSml);
-        talk3Speaker.setFont(gothambookTiny);
-        sessionLbl.setFont(Font.font("Arial", FontWeight.BOLD, 83));
-        roomLbl.setFont(Font.font("Arial", FontWeight.BOLD, 83));
-        roomNumber.setFont(Font.font("Arial", FontWeight.BOLD, 195));
-        sessionTitle.setFont(Font.font("Arial", FontWeight.BOLD, 45));
-        time.setFont(Font.font("Arial", FontWeight.BOLD, 90));
+        talk3Speaker.setFont(arialSmall);
+        sessionLbl.setFont(Font.font(FONTS_ARIAL, FontWeight.BOLD, 83));
+        roomLbl.setFont(Font.font(FONTS_ARIAL, FontWeight.BOLD, 83));
+        roomNumber.setFont(Font.font(FONTS_ARIAL, FontWeight.BOLD, 195));
+        sessionTitle.setFont(Font.font(FONTS_ARIAL, FontWeight.BOLD, 45));
+        time.setFont(Font.font(FONTS_ARIAL, FontWeight.BOLD, 90));
     }
+    
     
     /**
      * For debugging reasons show the public IP address of the PI.
@@ -236,8 +244,8 @@ public class FXMLDocumentController implements Initializable {
                 
                 HBox nameBox = new HBox();
                 nameBox.setAlignment(Pos.CENTER);
-                Label name = new Label(speaker.fullName.toUpperCase());
-                name.setFont(lightFont);
+                Label name = new Label(speaker.fullName.toUpperCase());                
+                name.setFont(arialSmall);
                 nameBox.getChildren().add(name);
                 speakerBox.getChildren().add(nameBox);
 

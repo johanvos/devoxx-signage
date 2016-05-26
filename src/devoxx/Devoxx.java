@@ -140,8 +140,7 @@ public class Devoxx extends Application {
                         
         if (controlProperties.isTestMode()) {
             root.setScaleX(controlProperties.getTestScale());
-            root.setScaleY(controlProperties.getTestScale());
-            
+            root.setScaleY(controlProperties.getTestScale());          
         } 
         
         screenController.setClock(controlProperties);        

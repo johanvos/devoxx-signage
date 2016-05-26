@@ -86,7 +86,7 @@
         <Font size="45.0" />
       </font>
     </Label>
-    <Label fx:id="sessionTime" layoutX="105.0" layoutY="975.0" text="WED 10:55 - 11:30 AM" textFill="$x4">
+    <Label fx:id="sessionTime" layoutX="120.0" layoutY="975.0" text="WED 10:55 - 11:30 AM" textFill="$x4">
       <font>
         <Font size="30.0" />
       </font>
@@ -130,7 +130,7 @@
                 <Font size="25.0" fx:id="x7" />
               </font>
             </Label>
-            <Label fx:id="talk2Speaker" alignment="TOP_LEFT" prefHeight="80.0" prefWidth="517.0" text="Fault tolerance made easy" wrapText="true">
+            <Label fx:id="talk2Speaker" alignment="TOP_LEFT" prefHeight="80.0" prefWidth="517.0" text="Steve Jobs" wrapText="true">
               <font>
                 <Font size="25.0" fx:id="x9" />
               </font>
@@ -141,7 +141,7 @@
           <children>
             <Label fx:id="talk3Time" font="$x5" text="WED 1:30 - 2:30PM" textFill="$x6" />
             <Label fx:id="talk3Title" alignment="TOP_LEFT" font="$x7" prefHeight="73.0" prefWidth="517.0" text="Android: Pushing The Limits" wrapText="true" />
-            <Label fx:id="talk3Speaker" alignment="TOP_LEFT" font="$x9" prefHeight="80.0" prefWidth="517.0" text="Fault tolerance made easy" wrapText="true" />
+            <Label fx:id="talk3Speaker" alignment="TOP_LEFT" font="$x9" prefHeight="80.0" prefWidth="517.0" text="Romain Guy" wrapText="true" />
           </children>
         </VBox>
       </children>

@@ -19,6 +19,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -114,7 +115,7 @@ public class DataFetcher {
     private boolean retrieveScheduleDetails() {
 
         final GsonBuilder presoJSONBuilder = new GsonBuilder();        
-        presoJSONBuilder.registerTypeAdapter(Presentation.class, new PresentationDeserializer(speakerMap));
+        presoJSONBuilder.registerTypeAdapter(Presentation.class, new PresentationDeserializer(speakerMap, imageCache));
         final Gson gson = presoJSONBuilder.create();
 
         for (String day : DAYS) {
@@ -145,7 +146,9 @@ public class DataFetcher {
 
     private void parseScheduleJsonFile(String jsonString, Gson gson) throws IOException, JsonParseException {
                 
-        try(Reader reader = new InputStreamReader(new FileInputStream(new File(jsonString)), "UTF-8")){
+        final FileInputStream in = new FileInputStream(new File(jsonString));
+        
+        try(Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
             JsonParser parser = new JsonParser();
             JsonElement root = parser.parse(reader);
             
@@ -195,9 +198,11 @@ public class DataFetcher {
         speakerJSONBuilder.registerTypeAdapter(Speaker.class, new SpeakerDeserializer(imageCache));
         final Gson gson = speakerJSONBuilder.create();
         
-        // Read Speakers JSON file and deserialize
         Speaker[] speakers;
-        try(Reader reader = new InputStreamReader(new FileInputStream(new File(SPEAKERS_JSON)), "UTF-8")){
+        
+        // Read Speakers JSON file and deserialize
+        FileInputStream in = new FileInputStream(new File(SPEAKERS_JSON));
+        try(Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)){
             speakers = gson.fromJson(reader, Speaker[].class);
         }
         
