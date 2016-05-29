@@ -30,7 +30,7 @@ import javafx.scene.input.KeyEvent;
 
 /**
  * The main Devoxx class.
- * 
+ *
  * @author Angie
  * @author Stephan007
  */
@@ -41,13 +41,13 @@ public class Devoxx extends Application {
 
     private static final int FIVE_MINUTES = 5;
     private static final int HALF_HOUR = 30;
-    
+
     private ControlProperties controlProperties;
     private FXMLDocumentController screenController;
 
     private DataFetcher dataFetcher;
     private String roomName;
-    
+
     private final List<Presentation> newPresentations = new ArrayList<>();
     private List<Presentation> presentations;
     private Presentation currentPresentation = null;
@@ -63,7 +63,7 @@ public class Devoxx extends Application {
      */
     @Override
     public void start(final Stage stage) throws Exception {
-                        
+
         // Get property values
         final String roomId = getRoomFromJVMParam();
         final String propertiesFile = getPropertiesFileFromJVMParam();
@@ -87,11 +87,12 @@ public class Devoxx extends Application {
 
     /**
      * Get the Devoxx properties file.
+     *
      * @return full path to property file
      */
-    private String getPropertiesFileFromJVMParam() {        
+    private String getPropertiesFileFromJVMParam() {
         List<String> parameters = getParameters().getRaw();
-        
+
         String propertiesFile = null;
         if (parameters.size() > 1) {
             propertiesFile = parameters.get(1);
@@ -101,11 +102,12 @@ public class Devoxx extends Application {
 
     /**
      * Get the required room ID from JVM parameters.
+     *
      * @return the room ID
      */
     private String getRoomFromJVMParam() {
         List<String> parameters = getParameters().getRaw();
-        
+
         final String room = parameters.isEmpty() ? null : getParameters().getRaw().get(0).toLowerCase();
         if (room == null || room.isEmpty()) {
             System.out.println("Please specify a room to display");
@@ -116,58 +118,59 @@ public class Devoxx extends Application {
 
     /**
      * Fetch the data from the REST endpoint for selected room ID.
+     *
      * @param roomId the room ID
      */
     private void fetchRoomSchedule(final String roomId) {
-        
+
         dataFetcher = new DataFetcher(controlProperties, roomId);
-        
+
         // If the first read fails we don't really have any way to continue
         if (!dataFetcher.updateData()) {
             System.err.println("Error retrieving initial data from server");
             System.err.println("Bailing out!");
             System.exit(1);
         }
-        
+
         presentations = dataFetcher.getPresentationList();
     }
 
     private void startFXScene(final Stage stage) throws IOException {
         final FXMLLoader myLoader = new FXMLLoader(getClass().getResource("FXMLDocument.fxml"));
         final Parent root = (Parent) myLoader.load();
-        
+
         screenController = ((FXMLDocumentController) myLoader.getController());
-                        
+
         if (controlProperties.isTestMode()) {
             root.setScaleX(controlProperties.getTestScale());
-            root.setScaleY(controlProperties.getTestScale());          
-        } 
-        
-        screenController.setClock(controlProperties);        
+            root.setScaleY(controlProperties.getTestScale());
+        }
+
+        screenController.setClock(controlProperties);
 
         final Scene scene = new Scene(root);
         scene.setOnKeyPressed(e -> handleKeyPress(e));
         scene.setFill(null);
-        
+
         stage.initStyle(StageStyle.UNDECORATED);
         stage.setScene(scene);
         stage.show();
-        
+
         screenController.setRoom(roomName);
     }
 
-    /** 
-     * Use another Timeline to periodically update the screen display so
-     * the time changes and the session information correctly reflects what's
+    /**
+     * Use another Timeline to periodically update the screen display so the
+     * time changes and the session information correctly reflects what's
      * happening
      */
-    private void startScreenTimer() {        
+    private void startScreenTimer() {
         Timeline updateTimeline = new Timeline(new KeyFrame(
                 Duration.seconds(controlProperties.getScreenRefreshTime()),
                 (ActionEvent t) -> updateDisplay()));
         updateTimeline.setCycleCount(INDEFINITE);
         updateTimeline.getKeyFrames().get(0).getOnFinished().handle(null);
-        updateTimeline.play();        
+        updateTimeline.play();
     }
 
     /**
@@ -184,42 +187,42 @@ public class Devoxx extends Application {
 
     /**
      * Log some control property details.
-     * 
+     *
      * @param propertiesFile the properties file
      * @param roomId the room ID
-     * @throws SecurityException 
+     * @throws SecurityException
      */
-    private void printConfigInfo(final String propertiesFile, 
-                                 final String roomId) throws SecurityException {
-        
+    private void printConfigInfo(final String propertiesFile,
+            final String roomId) throws SecurityException {
+
         controlProperties = new ControlProperties(propertiesFile);
         LOGGER.setLevel(controlProperties.getLoggingLevel());
         LOGGER.setUseParentHandlers(false);
         CONSOLDE_HANDLER.setLevel(controlProperties.getLoggingLevel());
         LOGGER.addHandler(CONSOLDE_HANDLER);
-        
+
         LOGGER.fine("===================================================");
         LOGGER.log(Level.FINE, "=== DEVOXX DISPLAY APP for [{0}]", roomId);
-        
+
         if (controlProperties.isTestMode()) {
             LOGGER.finest("=== RUNNING IN TEST MODE...");
         }
-        
+
         LOGGER.fine("===================================================");
     }
 
-   /**
+    /**
      * IMPORTANT:
      *
-     * If you use this code for a venue that uses different naming for the
-     * rooms you will need to change this. 
-     * 
-     * Devoxx BE uses rooms with a single digit number and two BOF rooms.
-     * Devoxx UK uses room letters.
+     * If you use this code for a venue that uses different naming for the rooms
+     * you will need to change this.
+     *
+     * Devoxx BE uses rooms with a single digit number and two BOF rooms. Devoxx
+     * UK uses room letters.
      */
     private String getRoomName(String room) {
         String roomNumber = "";
-        
+
         if (controlProperties.isDevoxxBelgium()) {
             if (room.startsWith("room")) {
                 roomNumber = room.substring("room".length());
@@ -232,16 +235,20 @@ public class Devoxx extends Application {
         } else if (controlProperties.isDevoxxUK()) {
             if (room.startsWith("room")) {
                 switch (room.substring("room".length())) {
-                    case "1"    : roomNumber = "A";
-                    break;
-                    
-                    case "2"    : roomNumber = "B";
-                    break;
-                    
-                    case "3"    : roomNumber = "C";
-                    break;
-                    
-                    default     : roomNumber = "D";
+                    case "1":
+                        roomNumber = "A";
+                        break;
+
+                    case "2":
+                        roomNumber = "B";
+                        break;
+
+                    case "3":
+                        roomNumber = "C";
+                        break;
+
+                    default:
+                        roomNumber = "D";
                 }
             } else {
                 roomNumber = "Auditorium";
@@ -269,12 +276,12 @@ public class Devoxx extends Application {
         LocalDateTime now;
 
         screenController.setClock(controlProperties);
-        
+
         if (controlProperties.isTestMode()) {
             now = LocalDateTime.of(
-                controlProperties.getStartDate()
-                .plusDays(controlProperties.getTestDay()),
-                controlProperties.getTestTime());
+                    controlProperties.getStartDate()
+                    .plusDays(controlProperties.getTestDay()),
+                    controlProperties.getTestTime());
         } else {
             now = LocalDateTime.now();
         }
@@ -311,25 +318,25 @@ public class Devoxx extends Application {
             }
         }
     }
-    
+
     /**
      * Force refresh of the speakers image cache via key "R".
      */
     private void refreshImageCache() {
-        
+
         final String imageCache = controlProperties.getImageCache();
         LOGGER.log(Level.FINER, "Recreating speaker cache at {0}", imageCache);
-        
+
         final File file = new File(imageCache);
         if (file.isDirectory()) {
-            
+
             int totalCacheFiles = file.listFiles().length;
             for (File cacheFile : file.listFiles()) {
                 cacheFile.delete();
             }
-            
+
             LOGGER.log(Level.FINER, "Deleted all {0} speaker cache photos", totalCacheFiles);
-            
+
             for (Presentation preso : presentations) {
                 for (Speaker speaker : preso.speakers) {
                     speaker.cachePhoto();
@@ -338,7 +345,27 @@ public class Devoxx extends Application {
             }
         } else {
             LOGGER.log(Level.FINER, "Speaker cache does not exist {0}", imageCache);
-        }        
+        }
+    }
+
+    private void setRoom(int roomNumber) {
+
+        String roomId;
+        if (roomNumber == 0) {
+            roomId = "aud_room";
+        } else {
+            roomId = "room" + roomNumber;
+        }
+
+        screenController.setRoom(getRoomName(roomId));
+
+        dataFetcher.clearAll();
+        
+        dataFetcher.setRoomId(roomId);
+        
+        currentPresentation = null;
+        
+        updateData();        
     }
 
     /**
@@ -350,46 +377,77 @@ public class Devoxx extends Application {
      */
     private void handleKeyPress(KeyEvent keyEvent) {
         KeyCode code = keyEvent.getCode();
-        if (null != code) 
+        if (null != code) {
             switch (code) {
-            case Q:
-                System.exit(0);
-            case UP:
-                controlProperties.incrementTestTime(FIVE_MINUTES);
-                updateDisplay();
-                break;
-            case DOWN:
-                controlProperties.decrementTestTime(FIVE_MINUTES);
-                updateDisplay();
-                break;
-            case LEFT:
-                controlProperties.decrementTestTime(HALF_HOUR);
-                updateDisplay();
-                break;
-            case RIGHT:
-                controlProperties.incrementTestTime(HALF_HOUR);
-                updateDisplay();
-                break;
-            case U:
-                updateDisplay();
-                break;
-            case D:
-                updateData();
-                break;
-            case R:
-                refreshImageCache();
-                updateData();
-                break;
-            case T:
-                controlProperties.toggleRunMode();
-                updateDisplay();
-                updateData();
-                break;
-            default:
-                break;
+                case DIGIT0:
+                    setRoom(0);
+                    break;
+                case DIGIT1:
+                    setRoom(1);
+                    break;
+                case DIGIT2:
+                    setRoom(2);
+                    break;
+                case DIGIT3:
+                    setRoom(3);
+                    break;
+                case DIGIT4:
+                    setRoom(4);
+                    break;
+                case DIGIT5:
+                    setRoom(5);
+                    break;
+                case DIGIT6:
+                    setRoom(6);
+                    break;
+                case DIGIT7:
+                    setRoom(7);
+                    break;
+                case DIGIT8:
+                    setRoom(8);
+                    break;
+                case DIGIT9:
+                    setRoom(9);
+                    break;
+                case Q:
+                    System.exit(0);
+                case UP:
+                    controlProperties.incrementTestTime(FIVE_MINUTES);
+                    updateDisplay();
+                    break;
+                case DOWN:
+                    controlProperties.decrementTestTime(FIVE_MINUTES);
+                    updateDisplay();
+                    break;
+                case LEFT:
+                    controlProperties.decrementTestTime(HALF_HOUR);
+                    updateDisplay();
+                    break;
+                case RIGHT:
+                    controlProperties.incrementTestTime(HALF_HOUR);
+                    updateDisplay();
+                    break;
+                case U:
+                    updateDisplay();
+                    break;
+                case D:
+                    updateData();
+                    break;
+                case R:
+                    refreshImageCache();
+                    updateData();
+                    break;
+                case T:
+                    controlProperties.toggleRunMode();
+                    updateDisplay();
+                    updateData();
+                    break;
+                default:
+                    break;
+            }
         }
     }
-    
+
     /**
      * The main() method is ignored in correctly deployed JavaFX application.
      * main() serves only as fallback in case the application can not be
@@ -398,7 +456,7 @@ public class Devoxx extends Application {
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) {        
+    public static void main(String[] args) {
         launch(args);
     }
 }

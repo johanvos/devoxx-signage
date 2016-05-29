@@ -322,14 +322,25 @@ public class FXMLDocumentController implements Initializable {
 
         roomNumber.setText(room);
         
-        // Shows the "Auditorium" room label for Devoxx UK
-        if (room.length() > 4) {
-          sessionLbl.setText(room);
-          sessionLbl.setTranslateX(-60);
-          sessionLbl.setTranslateY(20);
-          sessionLbl.setFont(Font.font("Arial", FontWeight.BOLD, 120));
-          roomNumber.setText("");
-          roomLbl.setText("");
+        if (room.equalsIgnoreCase("A") || 
+            room.equalsIgnoreCase("B") || 
+            room.equalsIgnoreCase("C") || 
+            room.equalsIgnoreCase("D")) {
+            sessionLbl.setText("SESSION");
+            sessionLbl.setTranslateX(10);
+            sessionLbl.setTranslateY(0);
+            sessionLbl.setFont(Font.font("Arial", FontWeight.BOLD, 80));
+            roomLbl.setText("ROOM");
+            roomLbl.setTranslateX(0);
+            roomNumber.setTranslateX(0);
+        } else if (room.length() > 4) {
+            // Shows the "Auditorium" room label for Devoxx UK
+            sessionLbl.setText(room);
+            sessionLbl.setTranslateX(-60);
+            sessionLbl.setTranslateY(20);
+            sessionLbl.setFont(Font.font("Arial", FontWeight.BOLD, 120));
+            roomNumber.setText("");
+            roomLbl.setText("");
         } 
     }
 }

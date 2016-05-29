@@ -48,7 +48,7 @@ public class DataFetcher {
     private final Map<String, Presentation> presentationMap = new HashMap<>();
     private final List<Presentation> presentations = new ArrayList<>();
     
-    private final String roomId;
+    private String roomId;
     private final String devoxxHost;
     private final LocalDate startDate;
     private final String imageCache;
@@ -65,6 +65,16 @@ public class DataFetcher {
         devoxxHost = controlProperties.getDevoxxHost();
         imageCache = controlProperties.getImageCache();
         startDate = controlProperties.getStartDate();
+    }
+    
+    public void setRoomId(final String roomId) {
+        this.roomId = roomId;
+    }
+    
+    public void clearAll() {
+        speakerMap.clear();
+        presentationMap.clear();
+        presentations.clear();
     }
 
     /**
