@@ -71,7 +71,7 @@ public class FXMLDocumentController implements Initializable {
     }
 
     /**
-     * Initialise various aspects of the display
+     * Initialize various aspects of the display
      *
      * @param url The URL (not used in this app)
      * @param rb The resource bundle (not used in this app)
@@ -219,7 +219,7 @@ public class FXMLDocumentController implements Initializable {
     public void setRoom(String room) {
         /**
          * For Devoxx BE there are two BOF rooms, which we treat differently by
-         * moing the labels for the session and room and reducing the font size
+         * moving the labels for the session and room and reducing the font size
          * of the room number
          */
         if (room.startsWith("BOF")) {
@@ -238,5 +238,4 @@ public class FXMLDocumentController implements Initializable {
 
         roomNumber.setText(room);
     }
-
 }

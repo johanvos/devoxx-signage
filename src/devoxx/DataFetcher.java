@@ -7,13 +7,17 @@ import devoxx.JSONParserJP.CallbackAdapter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 /**
  * Class for loading all session data from devoxx server
@@ -22,7 +26,7 @@ import java.util.logging.Logger;
  */
 public class DataFetcher {
 
-  private static final String[] day = {
+  private static final String[] DAY = {
     "monday", "tuesday", "wednesday", "thursday", "friday"
   };
 
@@ -43,8 +47,9 @@ public class DataFetcher {
    * @param controlProperties control properties
    * @param room Which room to get data for
    */
-  public DataFetcher(Logger logger, ControlProperties controlProperties,
-      String room) {
+  public DataFetcher(final Logger logger, 
+                     final ControlProperties controlProperties, 
+                     final String room) {
     this.logger = logger;
     this.room = room;
     devoxxHost = controlProperties.getDevoxxHost();
@@ -67,7 +72,7 @@ public class DataFetcher {
    * @return Whether the update suceeded or failed
    */
   public boolean updateData() {
-    logger.fine("Retrieving data for room " + room);
+    logger.log(Level.FINE, "Retrieving data for room {0}", room);
 
     /* First get all the speakers data */
     String dataUrl;
@@ -83,19 +88,19 @@ public class DataFetcher {
       return false;
     }
 
-    logger.info("Found [" + speakerMap.size() + "] SPEAKERS");
+    logger.log(Level.INFO, "Found [{0}] SPEAKERS", speakerMap.size());
 
     /* Now retrieve all the session data for the week */
     for (int i = 0; i < 5; i++) {
       try {
-        logger.finer("Retrieving data for " + day[i]);
-        dataUrl = devoxxHost + "rooms/" + room + "/" + day[i];
-        logger.finest(day[i] + " URL = " + dataUrl);
-        String jsonString = "schedule-" + day[i] + ".json";
+        logger.log(Level.FINER, "Retrieving data for {0}", DAY[i]);
+        dataUrl = devoxxHost + "rooms/" + room + "/" + DAY[i];
+        logger.log(Level.FINEST, "{0} URL = {1}", new Object[]{DAY[i], dataUrl});
+        String jsonString = "schedule-" + DAY[i] + ".json";
         JSONParserJP.download(logger, dataUrl, jsonString);
         JSONParserJP.parse(logger, jsonString, new SessionCallcack());
       } catch (Exception e) {
-        logger.severe("Failed to retrieve schedule for " + day[i]);
+        logger.log(Level.SEVERE, "Failed to retrieve schedule for {0}", DAY[i]);
         logger.severe(e.getMessage());
       }
     }
@@ -105,7 +110,7 @@ public class DataFetcher {
       return false;
     }
 
-    logger.info("Found [" + presentationMap.size() + "] PRESENTATIONS\n");
+    logger.log(Level.INFO, "Found [{0}] PRESENTATIONS\n", presentationMap.size());
 
     /* Sort the presentation by time.  I'm not sure this is really
      * necessary given the size of the data set (SR)
@@ -176,15 +181,14 @@ public class DataFetcher {
      */
     @Override
     public void endObject(String objectName, int depth) {
-      logger.finest("End speaker object found: " + firstName + " " + lastName);
+      logger.log(Level.FINEST, "End speaker object found: {0} {1}", new Object[]{firstName, lastName});
 
       if (depth == 1) {
         Speaker speaker = speakerMap.get(uuid);
 
         if (speaker == null) {
           logger.finest("Speaker is null, adding new speaker");
-          speaker = new Speaker(logger, uuid, firstName + " " + lastName,
-              imageUrl, imageCache);
+          speaker = new Speaker(logger, uuid, firstName + " " + lastName, imageUrl, imageCache);
           speaker.cachePhoto();
           speakerMap.put(uuid, speaker);
         }
@@ -216,7 +220,10 @@ public class DataFetcher {
      * @param depth The depth of the key/value
      */
     @Override
-    public void keyValue(String key, String value, int depth) {
+    public void keyValue(final String key, 
+                         final String value, 
+                         final int depth) {
+        
       if (depth == 4 && "id".equals(key)) {
         id = value;
       } else if (depth == 4 && "summary".equals(key)) {
@@ -230,8 +237,7 @@ public class DataFetcher {
             = speakerMap.get(value.substring(value.lastIndexOf('/') + 1));
 
         if (speaker == null) {
-          logger.finer("Failed to load: "
-              + value.substring(value.lastIndexOf('/') + 1));
+          logger.log(Level.FINER, "Failed to load: {0}", value.substring(value.lastIndexOf('/') + 1));
         } else {
           speakers.add(speaker);
         }
@@ -239,46 +245,12 @@ public class DataFetcher {
         room = value;
       } else if (depth == 4 && "title".equals(key)) {
         title = value;
-        logger.finest("Title = " + title);
-      } else if (depth == 3 && "fromTime".equals(key)) {
-        logger.finest("Session start time = " + value);
-        LocalTime startTime
-            = LocalTime.parse(value, DateTimeFormatter.ISO_LOCAL_TIME);
-        start = LocalDateTime.of(startDate, startTime);
-      } else if (depth == 3 && "toTime".equals(key)) {
-        logger.finest("Session end time = " + value);
-        LocalTime startTime
-            = LocalTime.parse(value, DateTimeFormatter.ISO_LOCAL_TIME);
-        end = LocalDateTime.of(startDate, startTime);
-      } else if (depth == 3 && "day".equals(key)) {
-        logger.finest("Day = " + value);
-
-        /**
-         * Process which day it is.
-         */
-        switch (value) {
-          case "monday":
-            break;
-          case "tuesday":
-            start = start.plusDays(1);
-            end = end.plusDays(1);
-            break;
-          case "wednesday":
-            start = start.plusDays(2);
-            end = end.plusDays(2);
-            break;
-          case "thursday":
-            start = start.plusDays(3);
-            end = end.plusDays(3);
-            break;
-          case "friday":
-            start = start.plusDays(4);
-            end = end.plusDays(4);
-            break;
-          default:
-            throw new IllegalStateException("unknown day: " + value);
-        }
-      }
+        logger.log(Level.FINEST, "Title = {0}", title);
+      } else if (depth == 3 && "fromTimeMillis".equals(key)) {                    
+          start = LocalDateTime.ofEpochSecond(Long.parseLong(value) / 1000, 0, ZoneOffset.ofTotalSeconds(3600));    // UTC+1
+      } else if (depth == 3 && "toTimeMillis".equals(key)) {
+          end = LocalDateTime.ofEpochSecond(Long.parseLong(value) / 1000, 0, ZoneOffset.ofTotalSeconds(3600));      // UTC+1
+      } 
     }
 
     /**
@@ -290,18 +262,18 @@ public class DataFetcher {
      * contain this object
      */
     @Override
-    public void endObject(String objectName, int depth) {
+    public void endObject(final String objectName, 
+                          final int depth) {
       if (depth == 2 && title != null) {
         /* XXX LETS COME BACK AND FIGURE THIS OUT LATER */
         length = 0;
 
-        Presentation presentation
-            = new Presentation(logger, id, title, room, start, end, length);
-        presentationMap.put(
-            id,
-            presentation);
-          System.out.println("presentation = " + presentation.title);
-        presentation.setExtended(
+        Presentation presentation = new Presentation(logger, id, title, room, start, end, length);
+        presentationMap.put(id, presentation);
+        
+        System.out.println("presentation = " + presentation.title + " (" + presentation.fromTime + " - " + presentation.toTime + ")");
+        
+          presentation.setExtended(
             summary,
             speakers.toArray(new Speaker[speakers.size()]),
             track,

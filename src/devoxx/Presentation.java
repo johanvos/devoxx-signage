@@ -37,8 +37,13 @@ public class Presentation {
      * @param toTime What time the presentation ends
      * @param length How long the presentation is
      */
-    public Presentation(Logger logger, String id, String title, String room,
-        LocalDateTime fromTime, LocalDateTime toTime, int length) {
+    public Presentation(final Logger logger, 
+                        final String id, 
+                        final String title, 
+                        final String room,
+                        final LocalDateTime fromTime, 
+                        final LocalDateTime toTime, 
+                        final int length) {
         this.id = id;
         this.title = title;
         this.room = room;
@@ -55,8 +60,10 @@ public class Presentation {
      * @param track Which track the presentation is in
      * @param type What type of presentation it is
      */
-    public void setExtended(String summary, Speaker[] speakers,
-        String track, String type) {
+    public void setExtended(final String summary, 
+                            final Speaker[] speakers,
+                            final String track, 
+                            final String type) {
         this.summary = summary;
         this.speakers = speakers;
         this.track = track;
@@ -73,6 +80,7 @@ public class Presentation {
         return "Presentation{" + "id=" + id
             + ", room=" + room
             + ", fromTime=" + fromTime
+            + ", toTime=" + toTime
             + ", speakers=" + Arrays.toString(speakers)
             + '}';
     }

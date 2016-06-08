@@ -44,8 +44,11 @@ public class Speaker {
    * @param downloadURL The URL for where the image comes from
    * @param cache Directory to use for image cache
    */
-  public Speaker(Logger logger, String uuid, String fullName,
-      String downloadURL, String cache) {
+  public Speaker(final Logger logger, 
+                 final String uuid, 
+                 final String fullName,
+                 final String downloadURL, 
+                 final String cache) {
     this.logger = logger;
     this.uuid = uuid;
     this.fullName = fullName;
@@ -63,7 +66,7 @@ public class Speaker {
     if (Files.exists(Paths.get(photoFileName), LinkOption.NOFOLLOW_LINKS))
       return;
 
-    logger.fine("Caching photo for " + fullName);
+    logger.log(Level.FINE, "Caching photo for {0}", fullName);
     File cacheFile = new File(photoFileName);
 
     if (downloadURL != null && downloadURL.isEmpty()) {
@@ -71,7 +74,7 @@ public class Speaker {
     }
     
     if (downloadURL.contains("\\")) {
-      logger.warning("Image URL badly formed: " + downloadURL);
+      logger.log(Level.WARNING, "Image URL badly formed: {0}", downloadURL);
       logger.warning("Trying to fix this");
       downloadURL = downloadURL.replace("\\", "/");
     }
@@ -79,8 +82,9 @@ public class Speaker {
     try {
       URL imageURL = new URL(downloadURL);
 
-      if (!Files.exists(Paths.get(cache), LinkOption.NOFOLLOW_LINKS))
+      if (!Files.exists(Paths.get(cache), LinkOption.NOFOLLOW_LINKS)) {
         Files.createDirectory(Paths.get(cache));
+      }
 
       final URLConnection connection = imageURL.openConnection();
       connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
@@ -109,14 +113,14 @@ public class Speaker {
 
     String photoFileName = cache + File.separatorChar + uuid + ".dat";
 
-    logger.finer("New speaker: " + fullName);
+    logger.log(Level.FINER, "New speaker: {0}", fullName);
 
     /* Load the image from the cache if it's available, otherwise go out 
      * to the URL, load it and cache it.
      */
     if (Files.exists(Paths.get(photoFileName), LinkOption.NOFOLLOW_LINKS)) {
-      logger.fine("Photo for " + fullName + " found in cache");
-      logger.finer("Cache file: " + photoFileName);
+      logger.log(Level.FINE, "Photo for {0} found in cache", fullName);
+      logger.log(Level.FINER, "Cache file: {0}", photoFileName);
 
       try {
         photoImage = new Image(new FileInputStream(photoFileName));
@@ -124,7 +128,7 @@ public class Speaker {
         logger.severe("FileNotFound error, which cannot happen!");
       }
     } else {
-      logger.fine("Downloading photo for " + fullName);
+      logger.log(Level.FINE, "Downloading photo for {0}", fullName);
       cachePhoto();   
       photoImage = new Image(downloadURL, 150, 150, true, true);
     }

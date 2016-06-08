@@ -4,10 +4,13 @@
 package devoxx;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -30,14 +33,16 @@ import javafx.scene.input.KeyEvent;
  */
 public class Devoxx extends Application {
 
-    private final static Logger logger
-        = Logger.getLogger(Devoxx.class.getName());
-    private final static ConsoleHandler consoleHandler = new ConsoleHandler();
-    private final List<Presentation> newPresentations = new ArrayList<>();
+    private final static Logger LOGGER = Logger.getLogger(Devoxx.class.getName());
+    private final static ConsoleHandler CONSOLDE_HANDLER = new ConsoleHandler();
+    
     private ControlProperties controlProperties;
     private FXMLDocumentController screenController;
-    private String roomNumber;
+
     private DataFetcher dataFetcher;
+    private String roomNumber;
+    
+    private final List<Presentation> newPresentations = new ArrayList<>();
     private List<Presentation> presentations;
     private Presentation currentPresentation = null;
     private Presentation firstPresentation;
@@ -45,7 +50,7 @@ public class Devoxx extends Application {
     private Presentation thirdPresentation;
 
     /**
-     * Entry point for the JavaFX application lifecycle
+     * Entry point for the JavaFX application life cycle.
      *
      * @param stage Where to present the scene
      * @throws Exception If there is an error
@@ -53,7 +58,7 @@ public class Devoxx extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         List<String> parameters = getParameters().getRaw();
-        String room = parameters.isEmpty() ? null : getParameters().getRaw().get(0);
+        String room = parameters.isEmpty() ? null : getParameters().getRaw().get(0).toLowerCase();
 
         if (room == null || room.isEmpty()) {
             System.out.println("Please specify a room to display");
@@ -67,22 +72,22 @@ public class Devoxx extends Application {
         }
 
         controlProperties = new ControlProperties(propertiesFile);
-        logger.setLevel(controlProperties.getLoggingLevel());
-        logger.setUseParentHandlers(false);
-        consoleHandler.setLevel(controlProperties.getLoggingLevel());
-        logger.addHandler(consoleHandler);
+        LOGGER.setLevel(controlProperties.getLoggingLevel());
+        LOGGER.setUseParentHandlers(false);
+        CONSOLDE_HANDLER.setLevel(controlProperties.getLoggingLevel());
+        LOGGER.addHandler(CONSOLDE_HANDLER);
 
-        logger.fine("===================================================");
-        logger.fine("=== DEVOXX DISPLAY APP for [" + room + "]");
+        LOGGER.fine("===================================================");
+        LOGGER.log(Level.FINE, "=== DEVOXX DISPLAY APP for [{0}]", room);
 
         if (controlProperties.isTestMode()) {
-            logger.finest("=== RUNNING IN TEST MODE...");
+            LOGGER.finest("=== RUNNING IN TEST MODE...");
         }
 
-        logger.fine("===================================================");
+        LOGGER.fine("===================================================");
 
         /* Fetch the data from the Web service */
-        dataFetcher = new DataFetcher(logger, controlProperties, room);
+        dataFetcher = new DataFetcher(LOGGER, controlProperties, room);
 
         /* If the first read fails we don't really have any way to continue */
         if (!dataFetcher.updateData()) {
@@ -105,12 +110,11 @@ public class Devoxx extends Application {
         } else if (room.startsWith("bof")) {
             roomNumber = "BOF" + room.substring("bof".length());
         } else {
-            logger.severe("Room name not recognised (must be roomX or bofX)");
+            LOGGER.severe("Room name not recognised (must be roomX or bofX)");
             System.exit(4);
         }
 
-        FXMLLoader myLoader
-            = new FXMLLoader(getClass().getResource("FXMLDocument.fxml"));
+        FXMLLoader myLoader = new FXMLLoader(getClass().getResource("FXMLDocument.fxml"));
         Parent root = (Parent) myLoader.load();
         screenController = ((FXMLDocumentController) myLoader.getController());
 
@@ -128,7 +132,7 @@ public class Devoxx extends Application {
         stage.show();
 
         screenController.setRoom(roomNumber);
-    //  update();
+        // update();
 
         /* Use a Timeline to periodically check for any updates to the published
          * data in case of last minute changes
@@ -168,7 +172,7 @@ public class Devoxx extends Application {
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) {        
         launch(args);
     }
 
@@ -187,7 +191,7 @@ public class Devoxx extends Application {
             now = LocalDateTime.now();
         }
 
-        logger.finer("Date and time of update = " + now);
+        LOGGER.log(Level.FINER, "Date and time of update = {0}", now);
         newPresentations.clear();
 
         for (Presentation presentation : presentations) {
@@ -200,26 +204,22 @@ public class Devoxx extends Application {
             }
         }
 
-        firstPresentation
-            = newPresentations.size() >= 1 ? newPresentations.get(0) : null;
-        secondPresentation
-            = newPresentations.size() >= 2 ? newPresentations.get(1) : null;
-        thirdPresentation
-            = newPresentations.size() >= 3 ? newPresentations.get(2) : null;
-        logger.fine("Screen update @ (" + now + ")");
+        firstPresentation = newPresentations.size() >= 1 ? newPresentations.get(0) : null;
+        secondPresentation = newPresentations.size() >= 2 ? newPresentations.get(1) : null;
+        thirdPresentation = newPresentations.size() >= 3 ? newPresentations.get(2) : null;
+        LOGGER.log(Level.FINE, "Screen update @ ({0})", now);
 
         if (currentPresentation != firstPresentation) {
             currentPresentation = firstPresentation;
-            screenController.setScreenData(
-                firstPresentation, secondPresentation, thirdPresentation);
-            logger.finer("New presentation: " + firstPresentation);
+            screenController.setScreenData(firstPresentation, secondPresentation, thirdPresentation);
+            LOGGER.log(Level.FINER, "New presentation: {0}", firstPresentation);
 
             if (secondPresentation != null) {
-                logger.finer("Second presentation: " + secondPresentation);
+                LOGGER.log(Level.FINER, "Second presentation: {0}", secondPresentation);
             }
 
             if (thirdPresentation != null) {
-                logger.finer("Third presentation: " + thirdPresentation);
+                LOGGER.log(Level.FINER, "Third presentation: {0}", thirdPresentation);
             }
         }
     }
@@ -232,16 +232,25 @@ public class Devoxx extends Application {
      * @param keyEvent The details of which key was pressed
      */
     private void handleKeyPress(KeyEvent keyEvent) {
-        if (keyEvent.getCode() == KeyCode.Q) {
-            System.exit(0);
-        } else if (keyEvent.getCode() == KeyCode.LEFT) {
-            controlProperties.decrementTestTime();
-        } else if (keyEvent.getCode() == KeyCode.RIGHT) {
-            controlProperties.incrementTestTime();
-        } else if (keyEvent.getCode() == KeyCode.U) {
-            update();
-        } else if (keyEvent.getCode() == KeyCode.D) {
-            updateData();
+        KeyCode code = keyEvent.getCode();
+        if (null != code) 
+            switch (code) {
+            case Q:
+                System.exit(0);
+            case LEFT:
+                controlProperties.decrementTestTime();
+                break;
+            case RIGHT:
+                controlProperties.incrementTestTime();
+                break;
+            case U:
+                update();
+                break;
+            case D:
+                updateData();
+                break;
+            default:
+                break;
         }
     }
 }

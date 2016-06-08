@@ -30,7 +30,8 @@ public class ControlProperties {
   private int mode = MODE_REAL;
   private int dataRefreshTime = 30;
   private int screenRefreshTime = 60;
-  private String dataURL = "http://cfp.devoxx.be/api/conferences/DV15/";
+  // private String dataURL = "http://cfp.devoxx.be/api/conferences/DV15/";
+  private String dataURL = "http://cfp.devoxx.co.uk/api/conferences/DevoxxUK2016/";
   private String imageCache = "/home/devoxx/speaker-images";
   private LocalDate startDate;
   private double testScale;
@@ -46,16 +47,23 @@ public class ControlProperties {
     /* Start by loading the properties */
     try {
       if (fileName != null) {
-        System.out.println("Loading parameters from " + fileName);
+        System.out.println("Loading parameters from FILE : " + fileName);
         properties.load(new FileInputStream(fileName));
-      } else /* Load the properties using the file in the jar file */ {
-        properties.load(
-            Devoxx.class.getResourceAsStream("resources/signage.properties"));
+      } else {
+        // Load the properties using the file in the jar file 
+        System.out.println("Loading parameters from RESOURCES : resources/signage.properties");
+        properties.load(Devoxx.class.getResourceAsStream("resources/signage.properties"));
       }
     } catch (IOException ex) {
       System.out.println("ControlProperties: Error reading properties file");
       System.out.println(ex.getMessage());
       System.exit(2);
+    }
+
+    // Host URL
+    String hostURL = properties.getProperty("devoxx-host");
+    if (!hostURL.isEmpty()) {
+        dataURL = hostURL;
     }
 
     /* What level of debug messages to log */
@@ -98,8 +106,7 @@ public class ControlProperties {
       int i = Integer.parseInt(value);
       dataRefreshTime = i;
     } catch (NumberFormatException nfe) {
-      System.out.println(
-          "ControlProperties: data-refresh-time is not a number");
+      System.out.println("ControlProperties: data-refresh-time is not a number");
     }
 
     /* How often do we want to refresh the data on the screen */
@@ -109,8 +116,7 @@ public class ControlProperties {
       int i = Integer.parseInt(value);
       screenRefreshTime = i;
     } catch (NumberFormatException nfe) {
-      System.out.println(
-          "ControlProperties: screen-refresh-time is not a number");
+      System.out.println("ControlProperties: screen-refresh-time is not a number");
     }
 
     /* Where to get data from */
