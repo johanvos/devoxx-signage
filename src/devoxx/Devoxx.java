@@ -106,6 +106,7 @@ public class Devoxx extends Application {
      * @return the room ID
      */
     private String getRoomFromJVMParam() {
+        System.out.println("[JVDBG] getParameters will return "+getParameters().getRaw());
         List<String> parameters = getParameters().getRaw();
 
         final String room = parameters.isEmpty() ? null : getParameters().getRaw().get(0).toLowerCase();
