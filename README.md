@@ -10,8 +10,8 @@ Digital signage used at the Devoxx conference with Raspberry PIs.
 
 3. Copy the JavaFX JAR file and the native libraries to the Java SDK installation directory, e.g.
 ```
-cp /home/pi/armv6hf-sdk/rt/lib/ext/jfxrt.jar /usr/lib/jvm/jdk-8-oracle-arm32-vfp-hflt/rt/lib/ext
-cp /home/pi/armv6hf-sdk/rt/lib/arm/* /usr/lib/jvm/jdk-8-oracle-arm32-vfp-hflt/rt/lib/arm
+sudo cp /home/pi/armv6hf-sdk/rt/lib/ext/jfxrt.jar /usr/lib/jvm/jdk-8-oracle-arm32-vfp-hflt/jre/lib/ext
+sudo cp /home/pi/armv6hf-sdk/rt/lib/arm/* /usr/lib/jvm/jdk-8-oracle-arm32-vfp-hflt/jre/lib/arm/
 ```
 
 4. Build the application on a desktop system, using ant 
