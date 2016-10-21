@@ -8,12 +8,20 @@ Digital signage used at the Devoxx conference with Raspberry PIs.
 
 2. Install OpenJFX. Download JavaFX Embedded SDK from http://gluonhq.com/open-source/javafxports/downloads/ and install it in the home directory (for example /home/pi/armv6hf-sdk)
 
-3. Build the application on a desktop system, using ant 
+3. Copy the JavaFX JAR file and the native libraries to the Java SDK installation directory, e.g.
+```
+cp /home/pi/armv6hf-sdk/rt/lib/ext/jfxrt.jar /usr/lib/jvm/jdk-8-oracle-arm32-vfp-hflt/rt/lib/ext
+cp /home/pi/armv6hf-sdk/rt/lib/arm/* /usr/lib/jvm/jdk-8-oracle-arm32-vfp-hflt/rt/lib/arm
+```
 
-4. Transfer the jar file (dist/Devoxx.jar to the pi) 
+4. Build the application on a desktop system, using ant 
 
-3. Run app on the pi, using 
-java -Djava.ext.dirs=/home/pi/armv6hf-sdk/rt/lib/ext/ -jar Devoxx.jar room8 signage.properties
+5. Transfer the jar file (dist/Devoxx.jar to the pi) 
+
+6. Run app on the pi, using 
+```
+java -jar Devoxx.jar room8 signage.properties
+```
 
 
 # Start Digital Signage automatic on PI
