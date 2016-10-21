@@ -12,15 +12,16 @@ Digital signage used at the Devoxx conference with Raspberry PIs.
 ```
 sudo cp /home/pi/armv6hf-sdk/rt/lib/ext/jfxrt.jar /usr/lib/jvm/jdk-8-oracle-arm32-vfp-hflt/jre/lib/ext
 sudo cp /home/pi/armv6hf-sdk/rt/lib/arm/* /usr/lib/jvm/jdk-8-oracle-arm32-vfp-hflt/jre/lib/arm/
+sudo cp armv6hf-sdk/rt/lib/javafx.platform.properties  /usr/lib/jvm/jdk-8-oracle-arm32-vfp-hflt/jre/lib/
 ```
 
 4. Build the application on a desktop system, using ant 
 
-5. Transfer the jar file (dist/Devoxx.jar to the pi) 
+5. Transfer the jar file (dist/Devoxx.jar to the pi) and do the same with the gson-1.4.jar file and the signage.properties 
 
 6. Run app on the pi, using 
 ```
-java -jar Devoxx.jar room8 signage.properties
+java -cp gson-1.4.jar:Devoxx.jar devoxx.Devoxx room8 signage.properties
 ```
 
 
