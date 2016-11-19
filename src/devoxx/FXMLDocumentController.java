@@ -167,8 +167,7 @@ public class FXMLDocumentController implements Initializable {
     
     public void hideDebug() {
         debugBox.setVisible(false);
-        debugLabel.setVisible(false);                
-        debugLabel.setText("");
+        debugLabel.setVisible(false);                        
     }
     
     /**

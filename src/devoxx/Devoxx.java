@@ -113,9 +113,11 @@ public class Devoxx extends Application {
      */
     private String getRoomFromSystem() {
         String room = null;
-        
+                
         final File file = new File(CURRENT_ROOMTXT);
         if (!file.exists()) {
+            
+            // Current room text file doesn't exist, lets get it from property params
             List<String> parameters = getParameters().getRaw();
 
             room = parameters.isEmpty() ? null : getParameters().getRaw().get(0).toLowerCase();
@@ -123,7 +125,8 @@ public class Devoxx extends Application {
                 System.out.println("Please specify a room to display");
                 System.exit(1);
             }
-        } else {
+        } else {            
+            // Lets get the room id from the local current room text file            
             try (BufferedReader br = new BufferedReader(new FileReader(file))) {
                 room = br.readLine();
             } catch(IOException e) {
@@ -186,6 +189,8 @@ public class Devoxx extends Application {
         stage.show();
 
         screenController.setRoom(roomName);
+        
+        screenController.hideDebug();
     }
 
     /**
@@ -386,20 +391,23 @@ public class Devoxx extends Application {
         if (roomNumber == 0) {
             roomId = "aud_room";
         } else {
-            roomId = "room" + roomNumber;
+            roomId = "room" + roomNumber; 
         }
 
         writeRoomToSystem(roomId);
-        
+
         screenController.setRoom(getRoomName(roomId));
 
         dataFetcher.clearAll();
-        
+
         dataFetcher.setRoomId(roomId);
-        
+
         currentPresentation = null;
-        
-        updateData();        
+
+        updateData();
+
+        screenController.hideDebug();
+       
     }
 
     /**
