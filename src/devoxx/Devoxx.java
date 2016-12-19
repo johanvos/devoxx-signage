@@ -5,8 +5,12 @@ package devoxx;
 
 import devoxx.model.Speaker;
 import devoxx.model.Presentation;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +43,8 @@ public class Devoxx extends Application {
     private final static Logger LOGGER = Logger.getLogger(Devoxx.class.getName());
     private final static ConsoleHandler CONSOLDE_HANDLER = new ConsoleHandler();
 
+    private static final String CURRENT_ROOMTXT = "currentRoom.txt";
+    
     private static final int FIVE_MINUTES = 5;
     private static final int HALF_HOUR = 30;
 
@@ -65,7 +71,7 @@ public class Devoxx extends Application {
     public void start(final Stage stage) throws Exception {
 
         // Get property values
-        final String roomId = getRoomFromJVMParam();
+        final String roomId = getRoomFromSystem();
         final String propertiesFile = getPropertiesFileFromJVMParam();
 
         // Print configuration info to std out for debugging
@@ -105,16 +111,41 @@ public class Devoxx extends Application {
      *
      * @return the room ID
      */
-    private String getRoomFromJVMParam() {
-        System.out.println("[JVDBG] getParameters will return "+getParameters().getRaw());
-        List<String> parameters = getParameters().getRaw();
+    private String getRoomFromSystem() {
+        String room = null;
+                
+        final File file = new File(CURRENT_ROOMTXT);
+        if (!file.exists()) {
+            
+            // Current room text file doesn't exist, lets get it from property params
+            List<String> parameters = getParameters().getRaw();
 
-        final String room = parameters.isEmpty() ? null : getParameters().getRaw().get(0).toLowerCase();
-        if (room == null || room.isEmpty()) {
-            System.out.println("Please specify a room to display");
+            room = parameters.isEmpty() ? null : getParameters().getRaw().get(0).toLowerCase();
+            if (room == null || room.isEmpty()) {
+                System.out.println("Please specify a room to display");
+                System.exit(1);
+            }
+        } else {            
+            // Lets get the room id from the local current room text file            
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                room = br.readLine();
+            } catch(IOException e) {
+                System.out.println("Problems reading currentRoom.txt file");
+                System.exit(1);
+            }
+        }
+        
+        return room;
+    }    
+    
+    private void writeRoomToSystem(String room) {
+        try(PrintWriter out = new PrintWriter(CURRENT_ROOMTXT)) {
+            out.println( room );
+        } catch(IOException e) {
+            System.out.println(e);
+            System.out.println("Problems writing to currentRoom.txt file");
             System.exit(1);
         }
-        return room;
     }
 
     /**
@@ -158,6 +189,8 @@ public class Devoxx extends Application {
         stage.show();
 
         screenController.setRoom(roomName);
+        
+        screenController.hideDebug();
     }
 
     /**
@@ -175,7 +208,7 @@ public class Devoxx extends Application {
     }
 
     /**
-     * Use a Timeline to periodically check for any updates to the published
+     * Use a Time line to periodically check for any updates to the published
      * data in case of last minute changes
      */
     private void startDataRefreshTimer() {
@@ -348,25 +381,33 @@ public class Devoxx extends Application {
             LOGGER.log(Level.FINER, "Speaker cache does not exist {0}", imageCache);
         }
     }
-
+    
     private void setRoom(int roomNumber) {
 
+        // TODO How to force a screen refresh before we continue, different thread?
+        screenController.showDebugMsg("Fetching data room " + roomNumber);        
+              
         String roomId;
         if (roomNumber == 0) {
             roomId = "aud_room";
         } else {
-            roomId = "room" + roomNumber;
+            roomId = "room" + roomNumber; 
         }
+
+        writeRoomToSystem(roomId);
 
         screenController.setRoom(getRoomName(roomId));
 
         dataFetcher.clearAll();
-        
+
         dataFetcher.setRoomId(roomId);
-        
+
         currentPresentation = null;
-        
-        updateData();        
+
+        updateData();
+
+        screenController.hideDebug();
+       
     }
 
     /**
@@ -411,6 +452,7 @@ public class Devoxx extends Application {
                     setRoom(9);
                     break;
                 case Q:
+                    screenController.showDebugMsg("Quitting");
                     System.exit(0);
                 case UP:
                     controlProperties.incrementTestTime(FIVE_MINUTES);
@@ -429,12 +471,15 @@ public class Devoxx extends Application {
                     updateDisplay();
                     break;
                 case U:
+                    screenController.showDebugMsg("Update display");
                     updateDisplay();
                     break;
                 case D:
+                    screenController.showDebugMsg("Update data");
                     updateData();
                     break;
                 case R:
+                    screenController.showDebugMsg("Reloading data");
                     refreshImageCache();
                     updateData();
                     break;
@@ -447,6 +492,8 @@ public class Devoxx extends Application {
                     break;
             }
         }
+        
+        screenController.hideDebug();
     }
 
     /**

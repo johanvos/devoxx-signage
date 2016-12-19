@@ -29,6 +29,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
@@ -66,8 +67,11 @@ public class FXMLDocumentController implements Initializable {
     ImageView speakerImg1, speakerImg2, speakerImg3;
 
     @FXML
-    Label speakerName1, speakerName2, speakerName3, ipaddress;
+    Label speakerName1, speakerName2, speakerName3, ipaddress, debugLabel;
 
+    @FXML
+    Rectangle debugBox;
+            
     Font lightFont, qTypeBig, qTypeSml, titleThin, gothambookBig,
         gothambookMed, gothambookSml, gothambookTiny, titleHuge, 
         titleBig, timeFont, roomNumberFont, arialSmall;
@@ -155,6 +159,16 @@ public class FXMLDocumentController implements Initializable {
         time.setFont(Font.font(FONTS_ARIAL, FontWeight.BOLD, 90));
     }
     
+    public void showDebugMsg(String msg) {
+        debugBox.setVisible(true);
+        debugLabel.setVisible(true);        
+        debugLabel.setText(msg);
+    }
+    
+    public void hideDebug() {
+        debugBox.setVisible(false);
+        debugLabel.setVisible(false);                        
+    }
     
     /**
      * For debugging reasons show the public IP address of the PI.
