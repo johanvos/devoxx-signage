@@ -3,10 +3,17 @@ apply plugin: 'application'
 
 repositories {
     mavenCentral()
+    maven {
+        url "https://repo.eclipse.org/content/repositories/yasson-snapshots/"
+    }
+    maven {
+        url 'https://maven.java.net/content/groups/public/'
+    }
 }
 
 dependencies {
-    compile files ('lib/gson-1.4.jar')
+    compile 'org.eclipse:yasson:1.0-SNAPSHOT'
+    compile 'org.glassfish:javax.json:1.0.4'
 }
 
 mainClassName = 'devoxx.Devoxx'

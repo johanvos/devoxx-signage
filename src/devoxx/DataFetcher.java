@@ -7,13 +7,6 @@ import devoxx.model.Speaker;
 import devoxx.model.Presentation;
 import devoxx.json.PresentationDeserializer;
 import devoxx.json.SpeakerDeserializer;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,6 +21,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
+import javax.json.stream.JsonParser;
 
 /**
  * Class for loading all session data from Devoxx server
@@ -124,9 +124,9 @@ public class DataFetcher {
      */
     private boolean retrieveScheduleDetails() {
 
-        final GsonBuilder presoJSONBuilder = new GsonBuilder();        
-        presoJSONBuilder.registerTypeAdapter(Presentation.class, new PresentationDeserializer(speakerMap, imageCache));
-        final Gson gson = presoJSONBuilder.create();
+//        final GsonBuilder presoJSONBuilder = new GsonBuilder();        
+//        presoJSONBuilder.registerTypeAdapter(Presentation.class, new PresentationDeserializer(speakerMap, imageCache));
+//        final Gson gson = presoJSONBuilder.create();
 
         for (String day : DAYS) {
             try {
@@ -137,9 +137,9 @@ public class DataFetcher {
                 String jsonString = "schedule-" + day + ".json";
                 
                 ResourceUtil.download(dataUrl, jsonString);
-                parseScheduleJsonFile(jsonString, gson);
+                parseScheduleJsonFile(jsonString);
             
-            } catch (IOException | JsonParseException e) {
+            } catch (IOException e) {
                 LOGGER.log(Level.SEVERE, "Failed to retrieve schedule for {0}", day);
                 LOGGER.severe(e.getMessage());
             }
@@ -154,20 +154,19 @@ public class DataFetcher {
         return true;
     }
 
-    private void parseScheduleJsonFile(String jsonString, Gson gson) throws IOException, JsonParseException {
+    private void parseScheduleJsonFile(String jsonString) throws IOException {
                 
         final FileInputStream in = new FileInputStream(new File(jsonString));
         
         try(Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
-            JsonParser parser = new JsonParser();
-            JsonElement root = parser.parse(reader);
-            
-            JsonObject obj = root.getAsJsonObject();
-            
-            JsonArray slots = obj.getAsJsonArray("slots");
+            JsonReader jsonReader = Json.createReader(reader);
+            JsonObject root = jsonReader.readObject();
+            JsonArray slots = root.getJsonArray("slots");
             
             if (slots.size() > 0) {
-                Presentation presentations[] = gson.fromJson(slots, Presentation[].class);
+                Jsonb jsonb = JsonbBuilder.create();
+                Presentation[] presentations = jsonb.fromJson(slots.toString(), Presentation[].class);
+           //     Presentation presentations[] = gson.fromJson(slots, Presentation[].class);
                 
                 for (Presentation presentation : presentations) {
                     if (presentation != null && !presentation.title.isEmpty()) {
@@ -191,7 +190,7 @@ public class DataFetcher {
 
             parseSpeakersJSONFile();
 
-        } catch (IOException | JsonParseException e) {
+        } catch (IOException e) {
             LOGGER.severe("Failed to retrieve speaker data!");
             LOGGER.severe(e.getMessage());
             return false;
@@ -201,19 +200,21 @@ public class DataFetcher {
         return true;
     }
 
-    private void parseSpeakersJSONFile() throws IOException, JsonParseException {
+    private void parseSpeakersJSONFile() throws IOException {
         
         // Create the JSON Builder
-        final GsonBuilder speakerJSONBuilder = new GsonBuilder();
-        speakerJSONBuilder.registerTypeAdapter(Speaker.class, new SpeakerDeserializer(imageCache));
-        final Gson gson = speakerJSONBuilder.create();
+//        final GsonBuilder speakerJSONBuilder = new GsonBuilder();
+//        speakerJSONBuilder.registerTypeAdapter(Speaker.class, new SpeakerDeserializer(imageCache));
+//        final Gson gson = speakerJSONBuilder.create();
         
         Speaker[] speakers;
         
         // Read Speakers JSON file and deserialize
         FileInputStream in = new FileInputStream(new File(SPEAKERS_JSON));
+        Jsonb jsonb = JsonbBuilder.create();
+
         try(Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)){
-            speakers = gson.fromJson(reader, Speaker[].class);
+            speakers = jsonb.fromJson(reader, Speaker[].class);
         }
         
         // Populate the speaker map
