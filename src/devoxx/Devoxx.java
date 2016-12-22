@@ -317,6 +317,11 @@ public class Devoxx extends Application {
      * th call to Platform.runLater()
      */
     private void updateData() {
+        if (!Platform.isFxApplicationThread()) {
+            System.err.println("This should never happen: updateData is called from a non-FX Thread. See stack trace below:");
+            Thread.dumpStack();
+            return;
+        }
         updating.set(true);
         Task task = new Task() {
             @Override
